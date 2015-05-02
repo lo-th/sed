@@ -1,1 +1,1 @@
-python build.py --include onlySeriously --minify --output ../build/seriously.min.js
+python build.py --include seriously --minify --output ../build/seriously.min.js
