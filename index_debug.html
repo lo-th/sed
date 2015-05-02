@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Serious editor</title>
+<style>
+*{ margin: 0; padding: 0; border: 0; } 
+html{ overflow:hidden; width:100%; height:100%; }
+body { font-family:monospace; background:#222; font-size:12px; color:#fff;}
+#debug { position:absolute; top:10px; left:10px; width:200px; height:40px; pointer-events:none;}
+#canvas { pointer-events:auto; width:100%; height:100%;}
+.environment{position:absolute; left:10px; bottom:10px; border:3px solid #74818b; width:64px; height:64px; cursor:pointer;}
+</style>
+<script type="text/javascript" src="js/libs/three.min.js"></script>
+<script type="text/javascript" src="build/serious.min.js"></script>
+<script type="text/javascript" src="src/ui.js"></script>
+<script type="text/javascript" src="src/seriousEditor.js"></script>
+<script type="text/javascript" src="js/V.3d.js"></script>
+</head>
+
+<body>
+<canvas id='canvas'></canvas>
+<div id='debug'>Seriously Editor<br>version 0.1 alpha</div>
+<script>
+
+
+var bgcolor = '333333';
+
+document.body.style.background = '#'+ bgcolor;
+var canvas = document.getElementById('canvas');
+var debug = document.getElementById('debug');
+
+
+var w = 640;
+var h = 480;
+var r = h/w;
+
+// init vue 3d option camera: horizontal, vertical, distance, focal, environment map
+var v = new V.View(90, 90, 25, 60, null);
+var tx1 = v.addSeriousTexture();
+var tx2 = v.addSeriousTexture();
+var tx3 = v.addSeriousTexture();
+// init serious video effect
+var serious = new Serious.Editor(v.canvas);
+
+serious.add('image', {src:'images/akira.jpg'});
+serious.add('image', {src:'images/moeb.jpg'});
+serious.add('image', {src:'images/rank.jpg'});
+serious.add('image', {src:'images/gime.jpg'});
+
+serious.add('split');
+serious.add('bleach-bypass');
+serious.add('brightness-contrast');
+serious.add('blend');
+serious.add('edge');
+
+serious.add('texture-3D', { texture: tx1 });
+serious.add('texture-3D', { texture: tx2 });
+serious.add('texture-3D', { texture: tx3 });
+
+var m0 = v.addPlane(tx1);
+var m1 = v.addPlane(tx2);
+var m2 = v.addPlane(tx3);
+
+m0.position.x = -12;
+m2.position.x = 12;
+
+loop();
+
+function loop(){
+    requestAnimationFrame( loop );
+
+    //serious.update();
+
+    v.renderer.setClearColor( ('0x'+bgcolor)*1, 1 );
+    v.render();
+}
+
+</script>
+</body>
+</html>
