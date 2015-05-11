@@ -14,6 +14,9 @@ UI.nset = {
     sc2:'rgba(120,30,60,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)',
 };
 
+UI.DocClick = false;
+
+
 //--------------------
 // TITLE
 //--------------------
@@ -81,7 +84,7 @@ UI.Url = function(target, name, callback, value ){
     this.t2.innerHTML = value;
     this.content.appendChild(this.t2);
 
-    this.fun =  function(e){ this.callback( this.t2.innerHTML ) }.bind(this)
+    this.fun =  function(e){ this.callback( this.t2.innerHTML ) }.bind(this);
     this.t2.addEventListener("input", this.fun, false);
 }
 UI.Url.prototype = {
@@ -106,28 +109,105 @@ UI.Url.prototype = {
 // NUMBER
 //--------------------
 
-UI.Number = function(target, name, callback, value ){
-    // type 0
-    
+UI.Number = function(target, name, callback, value, min, max ){
+     this.target = target;
+
+    this.mouseDown = false;
+    this.callback = callback || function(){};
+    this.content = document.createElement( 'div' );
+    this.content.className = 'UI-base';
+    target.appendChild( this.content );
+
+    this.t1 = document.createElement( 'div' );
+    this.t1.className = 'UI-text';
+    this.t1.innerHTML = name+':';
+    this.content.appendChild( this.t1 );
+
+    this.t2 = document.createElement('div');
+    this.t2.className = 'UI-text';
+    this.t2.style.cssText ='width:100px; left:100px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
+    this.t2.contentEditable =true;
+    this.t2.innerHTML = value;
+    this.content.appendChild(this.t2);
+
+    this.fun =  function(e){ this.callback( this.t2.innerHTML ) }.bind(this);
+    this.t2.addEventListener("input", this.fun, false);
 }
 UI.Number.prototype = {
     constructor: UI.Number,
     clear:function(){
+        this.t2.removeEventListener("input", this.fun, false);
+        
+        this.content.removeChild( this.t1 );
+        this.content.removeChild( this.t2 );
+        this.target.removeChild( this.content );
 
+        this.callback = null;
+        this.fun = null;
+        this.t1 = null;
+        this.t2 = null;
+        this.content = null;
+        this.target = null;
     }
 }
 //--------------------
 // VECTOR2
 //--------------------
 
-UI.V2 = function(target, name, callback, value ){
-    // type [0, 0]
+UI.V2 = function(target, name, callback, value1, value2 ){
+    this.target = target;
+
+    this.value1 = value1;
+    this.value2 = value2;
+
+    this.mouseDown = false;
+    this.callback = callback || function(){};
+    this.content = document.createElement( 'div' );
+    this.content.className = 'UI-base';
+    target.appendChild( this.content );
+
+    this.t1 = document.createElement( 'div' );
+    this.t1.className = 'UI-text';
+    this.t1.innerHTML = name+':';
+    this.content.appendChild( this.t1 );
+
+    this.t2 = document.createElement('div');
+    this.t2.className = 'UI-text';
+    this.t2.style.cssText ='width:60px; left:100px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
+    this.t2.contentEditable =true;
+    this.t2.innerHTML = this.value1;
+    this.content.appendChild(this.t2);
+
+    this.t3 = document.createElement('div');
+    this.t3.className = 'UI-text';
+    this.t3.style.cssText ='width:60px; left:170px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
+    this.t3.contentEditable =true;
+    this.t3.innerHTML = this.value2;
+    this.content.appendChild(this.t3);
+
+    this.fun =  function(e){ this.value1 = this.t2.innerHTML; this.value2 = this.t3.innerHTML; this.callback( [this.value1, this.value2] ) }.bind(this);
+    this.t2.addEventListener("input", this.fun, false);
+    this.t3.addEventListener("input", this.fun, false);
     
 }
 UI.V2.prototype = {
     constructor: UI.V2,
     clear:function(){
+        this.t2.removeEventListener("input", this.fun, false);
+        this.t3.removeEventListener("input", this.fun, false);
+        
+        this.content.removeChild( this.t1 );
+        this.content.removeChild( this.t2 );
+        this.content.removeChild( this.t3 );
+        this.target.removeChild( this.content );
 
+        this.callback = null;
+        this.fun = null;
+        this.t1 = null;
+        this.t2 = null;
+        this.t3 = null;
+        this.content = null;
+        this.target = null;
     }
 }
 //--------------------
@@ -136,12 +216,89 @@ UI.V2.prototype = {
 
 UI.Color = function(target, name, callback, value ){
     // type [0, 0, 0, 1]
-    
+    this.target = target;
+
+    this.value1 = (value[0]*255).toFixed(0);
+    this.value2 = (value[1]*255).toFixed(0);
+    this.value3 = (value[2]*255).toFixed(0);
+    this.value4 = (value[3]*255).toFixed(0);
+
+    this.mouseDown = false;
+    this.callback = callback || function(){};
+    this.content = document.createElement( 'div' );
+    this.content.className = 'UI-base';
+    target.appendChild( this.content );
+
+    this.t1 = document.createElement( 'div' );
+    this.t1.className = 'UI-text';
+    this.t1.innerHTML = name+':';
+    this.content.appendChild( this.t1 );
+
+    this.t2 = document.createElement('div');
+    this.t2.className = 'UI-text';
+    this.t2.style.cssText ='width:40px; left:100px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
+    this.t2.contentEditable =true;
+    this.t2.innerHTML = this.value1;
+    this.content.appendChild(this.t2);
+
+    this.t3 = document.createElement('div');
+    this.t3.className = 'UI-text';
+    this.t3.style.cssText ='width:40px; left:145px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
+    this.t3.contentEditable =true;
+    this.t3.innerHTML = this.value2;
+    this.content.appendChild(this.t3);
+
+    this.t4 = document.createElement('div');
+    this.t4.className = 'UI-text';
+    this.t4.style.cssText ='width:40px; left:190px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
+    this.t4.contentEditable =true;
+    this.t4.innerHTML = this.value3;
+    this.content.appendChild(this.t4);
+
+    this.t5 = document.createElement('div');
+    this.t5.className = 'UI-text';
+    this.t5.style.cssText ='width:40px; left:235px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
+    this.t5.contentEditable =true;
+    this.t5.innerHTML = this.value4;
+    this.content.appendChild(this.t5);
+
+    this.fun =  function(e){ 
+        this.value1 = this.t2.innerHTML; 
+        this.value2 = this.t3.innerHTML;
+        this.value3 = this.t4.innerHTML; 
+        this.value4 = this.t5.innerHTML;
+        this.callback( [this.value1/255, this.value2/255, this.value3/255, this.value4/255] )
+    }.bind(this);
+
+    this.t2.addEventListener("input", this.fun, false);
+    this.t3.addEventListener("input", this.fun, false);
+    this.t4.addEventListener("input", this.fun, false);
+    this.t5.addEventListener("input", this.fun, false);
 }
 UI.Color.prototype = {
     constructor: UI.Color,
     clear:function(){
+        this.t2.removeEventListener("input", this.fun, false);
+        this.t3.removeEventListener("input", this.fun, false);
+        this.t4.removeEventListener("input", this.fun, false);
+        this.t5.removeEventListener("input", this.fun, false);
+        
+        this.content.removeChild( this.t1 );
+        this.content.removeChild( this.t2 );
+        this.content.removeChild( this.t3 );
+        this.content.removeChild( this.t4 );
+        this.content.removeChild( this.t5 );
+        this.target.removeChild( this.content );
 
+        this.callback = null;
+        this.fun = null;
+        this.t1 = null;
+        this.t2 = null;
+        this.t3 = null;
+        this.t4 = null;
+        this.t5 = null;
+        this.content = null;
+        this.target = null;
     }
 }
 //--------------------
@@ -149,14 +306,55 @@ UI.Color.prototype = {
 //--------------------
 
 UI.Bool = function(target, name, callback, value ){
+    this.target = target;
 
+    this.value = value;
+
+    this.mouseDown = false;
+    this.callback = callback || function(){};
+    this.content = document.createElement( 'div' );
+    this.content.className = 'UI-base';
+    target.appendChild( this.content );
+
+    this.t1 = document.createElement( 'div' );
+    this.t1.className = 'UI-text';
+    this.t1.innerHTML = name+':';
+    this.content.appendChild( this.t1 );
+
+    this.t2 = document.createElement('div');
+    this.t2.className = 'UI-box';
+    if(this.value) this.t2.style.background = '#FFF';
+    this.content.appendChild(this.t2);
+
+    this.t2.onclick = function(e){
+        if(this.value){
+            this.value = false;
+            this.t2.style.background = 'none';
+        } else {
+            this.value = true;
+            this.t2.style.background = '#FFF';
+        }
+        this.callback( this.value );
+    }.bind(this);
 }
 UI.Bool.prototype = {
     constructor: UI.Bool,
     clear:function(){
+        this.t2.onclick = null;
+        
+        this.content.removeChild( this.t1 );
+        this.content.removeChild( this.t2 );
+        this.target.removeChild( this.content );
 
+        this.callback = null;
+        this.fun = null;
+        this.t1 = null;
+        this.t2 = null;
+        this.content = null;
+        this.target = null;
     }
 }
+
 //--------------------
 // LIST
 //--------------------
@@ -199,6 +397,10 @@ UI.List.prototype = {
         this.sel.innerHTML = this.value.toUpperCase();
         this.content.appendChild( this.sel );
         this.sel.onclick=function(e){ this.displayList(); }.bind(this);
+
+        /*this.target.onmouseover = function(){
+		   console.log('out over')
+		}*/
     },
     displayList:function(){
         if(this.lcontent!==null){
@@ -224,9 +426,9 @@ UI.List.prototype = {
             }
 
             this.lin.onclick=function(e){ this.value = e.target.name; this.closeList(); }.bind(this);
-            this.lin.onmouseover=function(e){ this.mover = true; clearTimeout(this.timer) }.bind(this);
+            this.lin.onmouseover=function(e){ this.mover = true; clearTimeout(this.timer); }.bind(this);
             this.lin.onmouseout=function(e){ 
-                if(this.mover) this.timer = setTimeout(function(e){this.closeList()}.bind(this), 100);
+                if(this.mover) this.timer = setTimeout(function(e){this.closeList()}.bind(this), 1000);
             }.bind(this);
 
             this.listHeight = this.list.length * 16;
@@ -278,6 +480,7 @@ UI.List.prototype = {
         e.preventDefault(); 
     },
     over:function(e){
+    	this.mover = true; clearTimeout(this.timer);
         //this.bg.style.backgroundColor = this.colors[2]; 
         this.bg.childNodes[0].style.backgroundColor = this.colors[4];
         e.preventDefault(); 
@@ -356,7 +559,7 @@ UI.Slide = function(target, name, callback, value, min, max, precision, type, se
     this.valueRange = this.max - this.min;
     this.set = set || [10,100,180,10];
     this.callback = callback || function(){}; 
-    this.width = 180;
+    this.width = 170;
     this.height = 16;
     this.w = this.width-8;
     this.value = value || 0;
@@ -367,6 +570,7 @@ UI.Slide = function(target, name, callback, value, min, max, precision, type, se
 UI.Slide.prototype = {
     constructor: UI.Slide,
     init:function(){
+    	
         this.content = document.createElement( 'div' );
         this.content.className = 'UI-base';
         
@@ -481,19 +685,20 @@ UI.createClass = function(name,rules){
     if(doRemove) element.className = element.className.replace(new RegExp("\\b"+name+"\\b","g"),"");
     else element.className = element.className+" "+name;
 }*/
+var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;';
+UI.createClass('UI-base', 'width:'+(UI.nset.width-4)+'px; height:20px; position:relative; left:0px; pointer-events:none; background:'+UI.nset.fc1+'; padding-left:10px; padding-right:10px; margin-bottom:1px;'+str);
+UI.createClass('UI-title', 'width:'+(UI.nset.width-4)+'px; height:30px; position:relative; left:0px; pointer-events:none; padding-left:5px; padding-right:5px; margin-bottom:1px; padding-top:8px;'+str);
 
-UI.createClass('UI-base', 'width:'+(UI.nset.width-4)+'px; height:20px; position:relative; left:0px; pointer-events:none; background:'+UI.nset.fc1+'; padding-left:10px; padding-right:10px; margin-bottom:1px;');
-UI.createClass('UI-title', 'width:'+(UI.nset.width-4)+'px; height:30px; position:relative; left:0px; pointer-events:none; padding-left:5px; padding-right:5px; margin-bottom:1px; padding-top:8px;');
+UI.createClass('UI-box', 'position:absolute; left:100px; top:2px; width:16px; height:16px; pointer-events:auto; cursor:pointer; border:1px solid #FFF; '+str);
+UI.createClass('UI-text', 'font-size:12px; position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; text-align:Left;'+str);
+UI.createClass('UI-textList', 'border:1px solid '+UI.nset.fc1+'; background:'+UI.nset.fc2+'; left:100px; font-size:12px; position:absolute; cursor:pointer; width:170px; height:16px; pointer-events:auto; margin-top:2px; text-align:center;'+str);
+UI.createClass('UI-textList:hover', 'border:1px solid #FFF;'+str);
+UI.createClass('UI-list', 'border:1px solid #FFF; position:absolute; left:100px; top:17px; width:170px; height:80px; background:#000; overflow:hidden; pointer-events:none; '+str);
+UI.createClass('UI-listInner', 'position:absolute; left:0; top:0; width:170px; background:#060; pointer-events:none;'+str);
+UI.createClass('UI-listItem', 'position:relative; width:170px; height:15px; background:#020; margin-bottom:1px; pointer-events:auto; cursor:pointer;'+str);
+UI.createClass('UI-listItem:hover', 'background:#050; color:#FFF;'+str)
+UI.createClass('UI-listScroll', 'position:absolute; right:0px; background:#000; width:20px; height:80px;cursor:pointer;pointer-events:auto;'+str);
+UI.createClass('UI-listPin', 'position:absolute; right:1px; background:#0F0; width:18px; height:20px; pointer-events:none;'+str);
 
-UI.createClass('UI-text', 'font-size:12px; position:absolute; width:80px; height:12px; pointer-events:none; margin-top:4px; text-align:Left;');
-UI.createClass('UI-textList', 'border:1px solid '+UI.nset.fc1+'; background:'+UI.nset.fc2+'; left:90px; font-size:12px; position:absolute; cursor:pointer; width:180px; height:16px; pointer-events:auto; margin-top:2px; text-align:center;');
-UI.createClass('UI-textList:hover', 'border:1px solid #FFF;');
-UI.createClass('UI-list', 'border:1px solid #FFF; position:absolute; left:90px; top:17px; width:180px; height:80px; background:#000; overflow:hidden; pointer-events:none; ');
-UI.createClass('UI-listInner', 'position:absolute; left:0; top:0; width:180px; background:#060; pointer-events:none;');
-UI.createClass('UI-listItem', 'position:relative; width:180px; height:15px; background:#020; margin-bottom:1px; pointer-events:auto; cursor:pointer;');
-UI.createClass('UI-listItem:hover', 'background:#050; color:#FFF;')
-UI.createClass('UI-listScroll', 'position:absolute; right:0px; background:#000; width:20px; height:80px;cursor:pointer;pointer-events:auto;');
-UI.createClass('UI-listPin', 'position:absolute; right:1px; background:#0F0; width:18px; height:20px; pointer-events:none;');
-
-UI.createClass('UI-scroll-bg', 'position:absolute; left:90px; top:2px; cursor:w-resize; pointer-events:auto;');
-UI.createClass('UI-scroll-sel', 'position:absolute; pointer-events:none; left:4px; top:4px;');
+UI.createClass('UI-scroll-bg', 'position:absolute; left:100px; top:2px; cursor:w-resize; pointer-events:auto;'+str);
+UI.createClass('UI-scroll-sel', 'position:absolute; pointer-events:none; left:4px; top:4px;'+str);

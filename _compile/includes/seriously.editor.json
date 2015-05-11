@@ -5,6 +5,7 @@
     "src/sources/seriously.camera.js",
     "src/sources/seriously.depth.js",
     "src/sources/seriously.imagedata.js",
+    "src/sources/seriously.three.js",
     "src/targets/seriously.three.js",
     "src/util/medialoader.js",
     "src/effects/seriously.accumulator.js",

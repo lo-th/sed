@@ -9,7 +9,7 @@
 var Seriously;
 var Serious = { version:0.1 };
 
-Serious.Sources = [ 'image', 'video', 'camera', 'scene' ];
+Serious.Sources = [ 'image', 'video', 'camera', 'scene', 'texture' ];
 
 Serious.Effects = [
     'accumulator',         'ascii',         'bleach-bypass',      'blend',       'blur', 
@@ -32,7 +32,7 @@ Serious.Effects = [
 ];
 
 Serious.Targets = [
-    'texture-3D'
+    'texture-3D', 'canvas'
 ]
 
 Serious.BlendMode = [
@@ -46,10 +46,13 @@ Serious.BlendMode = [
 ];
 Serious.BlendSizeMode = [ 'bottom', 'top', 'union', 'intersection' ];
 
-Serious.Editor = function(canvas){
-    this.glCanvas = canvas;
+Serious.Editor = function(autorun, canvas){
+    this.glCanvas = canvas || null;
 	this.seriously = new Seriously();
-    this.seriously.go();
+    if(autorun){
+        this.seriously.go();
+        console.log("auto")
+    }
 
     this.size = {x:322, y:272};
 
@@ -62,6 +65,10 @@ Serious.Editor = function(canvas){
     this.startOutN = 0;
 
     this.interval = null;
+
+    this.root_source = '';
+    this.root_target = '';
+    this.current_source_node = '';
 
     this.nodes = [];
     this.nodesDiv = [];
@@ -85,31 +92,36 @@ Serious.Editor = function(canvas){
 
 Serious.Editor.prototype = {
     constructor: Serious.Editor,
+    render:function(){
+        this.seriously.render();
+    },
     init:function(){
-        Serious.createClass('*', 'padding:0; margin:0; border: 0; -o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select:none; box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;');
-        Serious.createClass('basic', 'font-family:Monospace; font-size:12px; font-smooth:never; -webkit-font-smoothing:none; overflow:hidden; background:#222; color:#FCC;');
-        Serious.createClass('editor', 'width:42px; height:42px; position:absolute; right:10px; top:10px; border:2px solid #333; border-radius:6px; cursor:move;');
+        var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;';
+        //var str = 'padding:0; margin:0; border: 0; -o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select:none; box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;';
+        //Serious.createClass('*', 'padding:0; margin:0; border: 0; -o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select:none; box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;');
+        Serious.createClass('basic', 'font-family:Monospace; font-size:12px; font-smooth:never; -webkit-font-smoothing:none; overflow:hidden; background:#222; color:#FCC;' + str );
+        Serious.createClass('editor', 'width:42px; height:42px; position:absolute; right:10px; top:10px; border:2px solid #333; border-radius:6px; cursor:move;' + str );
 
-        Serious.createClass('def.basic.editor:hover', 'border:2px solid #666;');
-        Serious.createClass('S-grid','position:absolute; left:0px; top:0px; pointer-events:none; width:2000px; height:2000px; background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUAQMAAAC3R49OAAAABlBMVEVMaXFTU1OXUj8tAAAAAnRSTlMAgJsrThgAAAASSURBVHicY2BgEGCgFv7//wMANusEH0fp3IoAAAAASUVORK5CYII=)repeat;');
-        Serious.createClass('S-icc', 'font-size:32px; position:absolute; left:0px; top:0px; text-align:center; width:40px; height:40px; font-weight:bold;');
-        Serious.createClass('S-grid-plus', 'position:absolute; left:0px; top:0px; pointer-events:none;');
-        Serious.createClass('S-menu', 'width:42px; height:auto; position:absolute; right:10px; top:10px; pointer-events:auto; text-align:center; background:#222; border:2px solid #333; border-radius:6px; display:none; color:#CCF;')
+        Serious.createClass('def.basic.editor:hover', 'border:2px solid #666;'+ str);
+        Serious.createClass('S-grid','position:absolute; left:0px; top:0px; pointer-events:none; width:2000px; height:2000px; background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUAQMAAAC3R49OAAAABlBMVEVMaXFTU1OXUj8tAAAAAnRSTlMAgJsrThgAAAASSURBVHicY2BgEGCgFv7//wMANusEH0fp3IoAAAAASUVORK5CYII=)repeat;'+ str);
+        Serious.createClass('S-icc', 'font-size:32px; position:absolute; left:0px; top:0px; text-align:center; width:40px; height:40px; font-weight:bold;'+ str);
+        Serious.createClass('S-grid-plus', 'position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
+        Serious.createClass('S-menu', 'width:42px; height:auto; position:absolute; right:10px; top:10px; pointer-events:auto; text-align:center; background:#222; border:2px solid #333; border-radius:6px; display:none; color:#CCF;'+ str)
         // node
-        Serious.createClass('S-source', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.sc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;');
-        Serious.createClass('S-effect', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.fc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;');
-        Serious.createClass('S-target', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.tc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;');
+        Serious.createClass('S-source', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.sc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
+        Serious.createClass('S-effect', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.fc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
+        Serious.createClass('S-target', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.tc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
         // node over
         Serious.createClass('S-source:hover', 'background:'+this.nset.sc2+'; ');
         Serious.createClass('S-effect:hover', 'background:'+this.nset.fc2+'; ');
         Serious.createClass('S-target:hover', 'background:'+this.nset.tc2+'; ');
         // node icon
-        Serious.createClass('S-icon', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; left:0px; top:0px; pointer-events:none;');
+        Serious.createClass('S-icon', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
         // selected
-        Serious.createClass('S-select', 'margin-left:-2px; margin-top:-2px; width:'+(this.nset.w+4)+'px; height:'+(this.nset.h+4)+'px; position:absolute; border:4px solid #FFF; border-radius:'+(this.nset.r+2)+'px; pointer-events:none; display:none; pointer-events:none;');
+        Serious.createClass('S-select', 'margin-left:-2px; margin-top:-2px; width:'+(this.nset.w+4)+'px; height:'+(this.nset.h+4)+'px; position:absolute; border:4px solid #FFF; border-radius:'+(this.nset.r+2)+'px; pointer-events:none; display:none; pointer-events:none;'+ str);
         // link
-        Serious.createClass('S-in', 'width:8px; height:8px; position:absolute; left:16px; top:-4px; border:2px solid #0F0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;');
-        Serious.createClass('S-out', 'width:8px; height:8px; position:absolute; left:16px; bottom:-4px; border:2px solid #FF0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;');
+        Serious.createClass('S-in', 'width:8px; height:8px; position:absolute; left:16px; top:-4px; border:2px solid #0F0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;'+ str);
+        Serious.createClass('S-out', 'width:8px; height:8px; position:absolute; left:16px; bottom:-4px; border:2px solid #FF0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;'+ str);
 
         this.menu = document.createElement('div');
         this.menu.className = 'S-menu';
@@ -158,11 +170,16 @@ Serious.Editor.prototype = {
     // ADD
 
     add:function(type, obj){
+        obj = obj || {};
         var node, prefix;
         switch(type){
             case 'camera':
                 prefix = 'source';
                 node = this.seriously.source('camera'); 
+            break;
+            case 'texture':
+                prefix = 'source';
+                node = this.seriously.source(obj.texture, null , {}); 
             break;
             case 'video':
                 prefix = 'source';
@@ -177,15 +194,18 @@ Serious.Editor.prototype = {
                 node = document.createElement('img');
                 node.url = obj.src;
             break;
-            case 'scene':
+            /*case 'scene':
                 prefix = 'source'; 
                 node = document.createElement('img');
-            break;
+            break;*/
             //--------------------------------- target
             case 'texture-3D':
                 prefix = 'target';
-                node = this.seriously.target( obj.texture, { canvas:this.glCanvas });
-                //console.log(node.source)
+                node = this.seriously.target( obj.texture, { canvas:obj.canvas || this.glCanvas });
+            break;
+            case 'canvas-3D':
+                prefix = 'target';
+                node = this.seriously.target( obj.canvas);
             break;
             //--------------------------------- filter
             case 'reformat':
@@ -197,10 +217,25 @@ Serious.Editor.prototype = {
                 node = this.seriously.effect(type);
         }
 
-        for(var e in obj) if(e in node) node[e] = obj[e];
-        var id = this.nodes.length;
-        node.name = prefix +'_'+ id + '.' + type;
-        this.nodes.push(node);
+        for(var e in obj){
+            if(e!=='texture' && e!=='canvas' && e!=='id' && e in node){
+                node[e] = obj[e];
+            }
+        }
+
+        var id;
+        if( obj.id !== undefined ){
+            id = obj.id;
+            node.name = prefix +'_'+ id + '.' + type;
+            if(this.nodes[id])this.nodes[id].destroy();
+            this.nodes[id] = node;
+        }else{
+            id = this.nodes.length;
+            node.name = prefix +'_'+ id + '.' + type;
+            this.nodes.push(node);
+        }
+
+        return node;
     },
 
     // DISPLAY 
@@ -242,6 +277,7 @@ Serious.Editor.prototype = {
         while(this.gridTop.firstChild) { this.gridTop.removeChild(this.gridTop.firstChild); }
         this.nodesDiv = [];
     },
+    
 
     // TOOLS
     getPrefix:function(name){
@@ -253,7 +289,17 @@ Serious.Editor.prototype = {
     getType:function(name){
         return name.substring(name.lastIndexOf(".")+1, name.length);
     },
-
+    destroy:function(ID){
+        this.byID(ID).destroy();
+    },
+    byNAME:function(name){
+        var node;
+        var i = this.nodes.length;
+        while(i--){
+            node = this.nodes[i];
+            if(node.name==name) return node;
+        }
+    },
     byID:function(ID){
         var node, name, id;
         var i = this.nodes.length;
@@ -728,11 +774,11 @@ Serious.Editor.prototype = {
         this.sels.push(new UI.Number(this.menu, name, callback, this.nodes[id][name]));
     },
     addV2:function(id, name, min){
-        var callback = function(v){ this.nodes[id][name] = v; }.bind(this);
-        this.sels.push( new UI.V2(this.menu, name, callback, this.nodes[id][name]) );
+        var callback = function(ar){ this.nodes[id][name]=ar;}.bind(this);
+        this.sels.push( new UI.V2(this.menu, name, callback, this.nodes[id][name][0], this.nodes[id][name][1]) );
     },
     addColor:function(id, name){
-        var callback = function(v){ this.nodes[id][name] = v; }.bind(this);
+        var callback = function(ar){ this.nodes[id][name] = ar; }.bind(this);
         this.sels.push( new UI.Color(this.menu, name, callback, this.nodes[id][name]) );
     },
     addBool:function(id, name){
@@ -847,11 +893,12 @@ Serious.Editor.prototype = {
             //name = e.target.name;
             id = this.getID(name);
             var n = name.substring(0, 1)
-            var np = name.substring(1, 2)*1;
+            var np = name.substring(1, 2);
             
             if(l.source!==-1) if(id!==l.source && n=='O'){ l.target = id; l.targetN = np; }
             if(l.target!==-1) if(id!==l.target && n=='I'){ l.source = id; l.sourceN = np; }
 
+            console.log('mmmmmm')
             this.testLink();
         }
 
@@ -918,6 +965,19 @@ Serious.Link.prototype = {
     clear:function(){
         var targetNode = this.root.nodes[this.obj.target];
         var sourceNode = this.root.nodes[this.obj.source];
+
+        var type = this.root.getType(sourceNode.name);
+
+        // !!! TEST
+        //if(this.obj.sourceN == 0) sourceNode.source.destroy();
+        /*if(this.obj.sourceN == 1){ 
+            if(type=='blend') sourceNode.bottom.destroy();
+            if(type=='split') sourceNode.sourceA.destroy();
+        }
+        if(this.obj.sourceN == 2){ 
+            if(type=='blend') sourceNode.top.destroy();  
+            if(type=='split') sourceNode.sourceB.destroy();
+        }*/
         //sourceNode.removeSource(targetNode);
         //this.root.seriously.removeSource(targetNode);
         //sourceNode.destroy()
@@ -929,9 +989,16 @@ Serious.Link.prototype = {
     },
     apply:function(){
         //console.log('apply', this.obj.source, this.obj.target, this.obj.sourceN)
+
         var sourceNode = this.root.nodes[this.obj.source];
         var targetNode = this.root.nodes[this.obj.target];
         var type = this.root.getType(sourceNode.name);
+
+
+        if(this.root.root_source!==''){
+            //console.log('mmm',targetNode.name, sourceNode.name, this.root.root_source)
+            if(targetNode.name == this.root.root_source) this.root.current_source_node = sourceNode.name;
+        }
 
         if(this.obj.sourceN == 0) sourceNode.source = targetNode;
         if(this.obj.sourceN == 1){ 
@@ -942,6 +1009,8 @@ Serious.Link.prototype = {
             if(type=='blend') sourceNode.top = targetNode;  
             if(type=='split') sourceNode.sourceB = targetNode;
         }
+
+        targetNode.parent = sourceNode.name;
         //console.log('apply',  sourceNode.source)
     },
     draw:function(){
@@ -997,17 +1066,19 @@ Serious.Icon = function(type){
     var t = [];
     t[0] = "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' preserveAspectRatio='none' x='0px' y='0px' width='"+width+"px' height='"+width+"px' viewBox='"+Kwidth+"';'><g>";
     switch(type){
-        case 'image' : t[1]="<path fill='#"+color+"' d='M 23.7 21.55 Q 25.6599609375 18.96171875 27 23 L 27 27 23 27 23 28 28 28 28 12 12 12 12 28 17 28 17 27 13 27 13 22 Q 16.321484375 21.2798828125 19 22.7 21.7318359375 24.17578125 23.7 21.55 M 27 21 Q 25.2 18.15 23 21 21.4 23.1 18 21 15.7 19.75 13 21 L 13 13 27 13 27 21 M 30 11 L 29 10 11 10 10 11 10 29 11 30 17 30 17 29 11 29 11 11 29 11 29 29 23 29 23 30 29 30 30 29 30 11 M 16 32 L 20 36 24 32 22 32 22 27 18 27 18 32 16 32 Z'/>";break;
-        case 'video' : t[1]="<path fill='#"+color+"' d='M 29 11 L 30 11 30 10 10 10 10 30 17 30 17 27 11 27 11 13 29 13 29 27 23 27 23 28 24 28 24 29 23 29 23 30 30 30 30 29 29 29 29 28 30 28 30 12 29 12 29 11 M 11 28 L 12 28 12 29 11 29 11 28 M 13 28 L 14 28 14 29 13 29 13 28 M 16 28 L 16 29 15 29 15 28 16 28 M 11 11 L 12 11 12 12 11 12 11 11 M 13 11 L 14 11 14 12 13 12 13 11 M 15 12 L 15 11 16 11 16 12 15 12 M 17 11 L 18 11 18 12 17 12 17 11 M 19 11 L 20 11 20 12 19 12 19 11 M 21 11 L 22 11 22 12 21 12 21 11 M 23 11 L 24 11 24 12 23 12 23 11 M 25 12 L 25 11 26 11 26 12 25 12 M 27 11 L 28 11 28 12 27 12 27 11 M 27 29 L 27 28 28 28 28 29 27 29 M 26 28 L 26 29 25 29 25 28 26 28 M 16 32 L 20 36 24 32 22 32 22 27 18 27 18 32 16 32 Z'/>";break;
-        case 'camera': t[1]="<path fill='#"+color+"' d='M 21 14 L 21 12 19 12 19 14 21 14 M 23 12 L 23 10 17 10 17 12 11 12 10 13 10 28 11 29 17 29 17 28 11 28 11 13 18 13 18 11 22 11 22 13 29 13 29 28 23 28 23 29 29 29 30 28 30 13 29 12 23 12 M 23.5 23.5 Q 25 22.05 25 20 25 17.95 23.5 16.45 22.05 15 20 15 17.95 15 16.45 16.45 15 17.95 15 20 15 22.05 16.45 23.5 17.95 25 20 25 22.05 25 23.5 23.5 M 24 20 Q 24 21.65 22.8 22.8 21.65 24 20 24 18.35 24 17.15 22.8 16 21.65 16 20 16 18.35 17.15 17.15 18.35 16 20 16 21.65 16 22.8 17.15 24 18.35 24 20 M 22.1 22.1 Q 23 21.25 23 20 23 18.75 22.1 17.85 21.25 17 20 17 18.75 17 17.85 17.85 17 18.75 17 20 17 21.25 17.85 22.1 18.75 23 20 23 21.25 23 22.1 22.1 M 16 32 L 20 36 24 32 22 32 22 27 18 27 18 32 16 32 Z'/>";break;
-        case 'scene' : t[1]="<path fill='#"+color+"' d='M 30 14 L 21 10 20 10 10 14 10 26 16.95 29.1 17 28.1 11 25.45 11 15.45 19 19 19 26 20 26 20 19 29 15.4 29 25.4 22.9 27.8 23 28.8 30 26 30 14 M 21 11 L 28.8 14.45 20 18 19 18 11.15 14.5 20 11 21 11 M 16 32 L 20 36 24 32 22 32 22 27 18 27 18 32 16 32 Z'/>";break;
+        // source
+        case 'image' : t[1]="<path fill='#"+color+"' d='M 16 30 L 20 34 24 30 16 30 M 16 27 L 16 29 24 29 24 27 16 27 M 27 23 L 27 20 Q 25.2 17.15 23 20 21.4 22.1 18 20 15.7 18.75 13 20 L 13 22 Q 16.32 21.27 19 22.7 21.73 24.17 23.7 21.55 25.65 18.96 27 23 M 30 11 L 29 10 11 10 10 11 10 29 11 30 14 30 14 28 12 28 12 12 28 12 28 28 26 28 26 30 29 30 30 29 30 11 Z'/>";break;
+        case 'video' : t[1]="<path fill='#"+color+"' d='M 16 30 L 20 34 24 30 16 30 M 16 27 L 16 29 24 29 24 27 16 27 M 30 11 L 30 10 10 10 10 30 14 30 14 29 13 29 13 28 14 28 14 27 11 27 11 13 29 13 29 27 26 27 26 30 30 30 30 29 29 29 29 28 30 28 30 12 29 12 29 11 30 11 M 21 12 L 21 11 22 11 22 12 21 12 M 23 12 L 23 11 24 11 24 12 23 12 M 25 12 L 25 11 26 11 26 12 25 12 M 27 12 L 27 11 28 11 28 12 27 12 M 11 11 L 12 11 12 12 11 12 11 11 M 15 12 L 15 11 16 11 16 12 15 12 M 13 11 L 14 11 14 12 13 12 13 11 M 17 12 L 17 11 18 11 18 12 17 12 M 19 11 L 20 11 20 12 19 12 19 11 M 12 29 L 11 29 11 28 12 28 12 29 M 27 29 L 27 28 28 28 28 29 27 29 Z'/>";break;
+        case 'camera': t[1]="<path fill='#"+color+"' d='M 16 30 L 20 34 24 30 16 30 M 16 27 L 16 29 24 29 24 27 16 27 M 29 12 L 23 12 23 10 17 10 17 12 11 12 10 13 10 28 11 29 14 29 14 27 12 27 12 14 18 14 18 11 22 11 22 14 28 14 28 27 26 27 26 29 29 29 30 28 30 13 29 12 M 21 14 L 21 12 19 12 19 14 21 14 M 23.5 23.5 Q 25 22.05 25 20 25 17.95 23.5 16.45 22.05 15 20 15 17.95 15 16.45 16.45 15 17.95 15 20 15 22.05 16.45 23.5 17.95 25 20 25 22.05 25 23.5 23.5 M 22.8 17.15 Q 24 18.35 24 20 24 21.65 22.8 22.8 21.65 24 20 24 18.35 24 17.15 22.8 16 21.65 16 20 16 18.35 17.15 17.15 18.35 16 20 16 21.65 16 22.8 17.15 M 22.1 22.1 Q 23 21.25 23 20 23 18.75 22.1 17.85 21.25 17 20 17 18.75 17 17.85 17.85 17 18.75 17 20 17 21.25 17.85 22.1 18.75 23 20 23 21.25 23 22.1 22.1 Z'/>";break;
+        case 'texture' : t[1]="<path fill='#"+color+"' d='M 27.9 15.8 L 28 24.5 26 25.5 26 27.6 30 26 30 14 21 10 20 10 10 14 10 26 14 27.75 14 25.5 12 24.5 12 15.9 19 19 19 25 20 25 20 19 27.9 15.8 M 21 12 L 27.75 14.9 20 18 19 18 12.15 14.95 20 12 21 12 M 16 30 L 20 34 24 30 16 30 M 16 27 L 16 29 24 29 24 27 16 27 Z'/>";break;
 
-        //case 'texture-0D': t[1]="<path fill='#"+color+"' d='M 24 9 L 22 9 22 4 18 4 18 9 16 9 20 13 24 9 M 19 14 L 18 13 18 14 19 14 M 22 14 L 21 14 20 15 20 16 22 16 22 14 M 30 10 L 25 10 22 13 22 14 24 14 24 12 26 12 26 14 28 14 28 28 14 28 14 26 12 26 12 24 14 24 14 22 12 22 12 20 14 20 14 18 12 18 12 16 14 16 14 14 12 14 12 12 14 12 14 14 16 14 16 12 17 12 15 10 10 10 10 30 30 30 30 10 M 18 14 L 16 14 16 16 18 16 18 14 M 20 16 L 18 16 18 18 20 18 20 16 M 16 24 L 14 24 14 26 16 26 16 24 M 16 22 L 16 24 18 24 18 22 16 22 M 20 20 L 18 20 18 22 20 22 20 20 M 14 20 L 14 22 16 22 16 20 14 20 M 18 18 L 16 18 16 20 18 20 18 18 M 22 20 L 22 18 20 18 20 20 22 20 M 22 16 L 22 18 24 18 24 16 22 16 M 26 16 L 26 14 24 14 24 16 26 16 M 16 18 L 16 16 14 16 14 18 16 18 Z'/>";break;  
-        case 'texture-3D': t[1]="<path fill='#"+color+"' d='M 30 10 L 25 10 20 15 15 10 10 10 10 30 30 30 30 10 M 24 12 L 26 12 26 14 28 14 28 17 27 17 27 18 28 18 28 28 18 28 18 27 17 27 17 28 14 28 14 26 12 26 12 24 14 24 14 22 16 22 16 20 18 20 18 18 20 18 20 16 22 16 22 14 24 14 24 12 M 20 25 L 19 25 19 26 20 26 20 25 M 25 19 L 25 20 26 20 26 19 25 19 M 24 21 L 23 21 23 22 24 22 24 21 M 22 23 L 21 23 21 24 22 24 22 23 M 16 24 L 14 24 14 26 16 26 16 24 M 16 22 L 16 24 18 24 18 22 16 22 M 20 20 L 18 20 18 22 20 22 20 20 M 22 20 L 22 18 20 18 20 20 22 20 M 22 16 L 22 18 24 18 24 16 22 16 M 26 16 L 26 14 24 14 24 16 26 16 M 24 8 L 24 6 16 6 16 8 24 8 M 16 9 L 20 13 24 9 16 9 Z'/>";break;
-        
-        case 18: t[1]="<path fill='#"+color+"' d='M 16 11 L 14 11 14 14 11 14 11 16 14 16 14 19 16 19 16 16 19 16 19 14 16 14 16 11 Z'/>";break;
+        //target
+        case 'texture-3D': t[1]="<path fill='#"+color+"' d='M 30 10 L 25 10 20 15 15 10 10 10 10 30 30 30 30 10 M 24 12 L 26 12 26 14 28 14 28 17 27 17 27 18 28 18 28 28 18 28 18 27 17 27 17 28 14 28 14 26 12 26 12 24 14 24 14 22 16 22 16 20 18 20 18 18 20 18 20 16 22 16 22 14 24 14 24 12 M 20 25 L 19 25 19 26 20 26 20 25 M 25 19 L 25 20 26 20 26 19 25 19 M 24 21 L 23 21 23 22 24 22 24 21 M 22 23 L 21 23 21 24 22 24 22 23 M 16 24 L 14 24 14 26 16 26 16 24 M 16 22 L 16 24 18 24 18 22 16 22 M 20 20 L 18 20 18 22 20 22 20 20 M 22 20 L 22 18 20 18 20 20 22 20 M 22 16 L 22 18 24 18 24 16 22 16 M 26 16 L 26 14 24 14 24 16 26 16 M 24 8 L 24 6 16 6 16 8 24 8 M 16 9 L 20 13 24 9 16 9 Z'/>";break; 
+        case 'canvas-3D': t[1]="<path fill='#"+color+"' d='M 25 18 L 25 16 23 14 18 14 15 17 15 23 18 26 23 26 25 24 25 22 24 22 22 24 20 24 18 22 18 18 20 16 22 16 24 18 25 18 M 16 9 L 20 13 24 9 16 9 M 24 8 L 24 6 16 6 16 8 24 8 M 30 10 L 25 10 22 13 25 13 26 12 28 12 28 28 12 28 12 12 14 12 15 13 18 13 15 10 10 10 10 30 30 30 30 10 Z'/>";break;
+
         case 18: t[1]="<path fill='#"+color+"' d='M 16 11 L 14 11 14 14 11 14 11 16 14 16 14 19 16 19 16 16 19 16 19 14 16 14 16 11 Z'/>";break;
 
+        //filter
         default: t[1]="<path fill='#"+color+"' d='M 21 20 Q 24.4 17 23 13 22.5 11.6 20.9 10 L 18.9 10 Q 20.4 11.5 20.95 13 22.4 16.95 19 20 15.35 23.4 16.45 27 16.9 28.2 17.85 29.1 18.35 29.55 19 30 L 21 30 Q 19.1 28.3 18.5 27 17.05 23.65 21 20 M 20.2 14 Q 20.14 13.51 20 13 L 19.55 12 10 12 10 28 16.05 28 15.5 27 Q 15.28 26.50 15.15 26 L 12 26 12 14 20.2 14 M 21.9 10 Q 23.3 11.4 23.6 12 L 28 12 28 28 20.05 28 Q 20.4 28.5 20.9 29 21.4 29.5 22 30 L 30 30 30 10 21.9 10 Z'/>";break;
     }
     t[2] = "</g></svg>";
