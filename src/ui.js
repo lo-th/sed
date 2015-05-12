@@ -77,20 +77,32 @@ UI.Url = function(target, name, callback, value ){
     this.t1.innerHTML = 'URL:';
     this.content.appendChild( this.t1 );
 
-    this.t2 = document.createElement('div');
-    this.t2.className = 'UI-text';
+    this.t2 = document.createElement('input');
+    this.t2.className = 'UI-url';
     this.t2.style.cssText ='width:200px; left:50px; pointer-events:auto;';
-    this.t2.contentEditable =true;
-    this.t2.innerHTML = value;
+    //this.t2.contentEditable =true;
+    this.t2.value = value;
     this.content.appendChild(this.t2);
 
-    this.fun =  function(e){ this.callback( this.t2.innerHTML ) }.bind(this);
-    this.t2.addEventListener("input", this.fun, false);
+    //this.fun =  function(e){ this.callback( this.t2.innerHTML ) }.bind(this);
+    this.fun =  function(e){
+        e.stopPropagation();
+        this.callback( this.t2.value );
+        if ( e.keyCode === 13 ) e.target.blur();
+    }.bind(this);
+
+    this.change =  function(e){
+        this.callback( this.t2.value );
+    }.bind(this);
+
+    this.t2.addEventListener("keydown", this.fun, false);
+    this.t2.addEventListener("change", this.change, false);
 }
 UI.Url.prototype = {
     constructor: UI.Url,
     clear:function(){
-        this.t2.removeEventListener("input", this.fun, false);
+        this.t2.removeEventListener("keydown", this.fun, false);
+        this.t2.removeEventListener("change", this.change, false);
         
         this.content.removeChild( this.t1 );
         this.content.removeChild( this.t2 );
@@ -123,20 +135,31 @@ UI.Number = function(target, name, callback, value, min, max ){
     this.t1.innerHTML = name+':';
     this.content.appendChild( this.t1 );
 
-    this.t2 = document.createElement('div');
-    this.t2.className = 'UI-text';
-    this.t2.style.cssText ='width:100px; left:100px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
-    this.t2.contentEditable =true;
-    this.t2.innerHTML = value;
+    this.t2 = document.createElement('input');
+    this.t2.className = 'UI-number';
+    this.t2.style.cssText ='width:80px; left:100px; pointer-events:auto;  border:none;';
+    this.t2.value = value;
     this.content.appendChild(this.t2);
 
-    this.fun =  function(e){ this.callback( this.t2.innerHTML ) }.bind(this);
-    this.t2.addEventListener("input", this.fun, false);
+    this.fun =  function(e){
+        e.stopPropagation();
+        this.callback( this.t2.value );
+        if ( e.keyCode === 13 ) e.target.blur();
+    }.bind(this);
+
+    this.change =  function(e){
+        this.callback( this.t2.value );
+    }.bind(this);
+
+    this.t2.addEventListener( 'keydown', this.fun, false );
+    this.t2.addEventListener( 'change', this.change, false );
 }
 UI.Number.prototype = {
     constructor: UI.Number,
     clear:function(){
-        this.t2.removeEventListener("input", this.fun, false);
+        //this.t2.removeEventListener("input", this.fun, false);
+        this.t2.removeEventListener( 'keydown', this.fun, false );
+        this.t2.removeEventListener( 'change', this.change, false );
         
         this.content.removeChild( this.t1 );
         this.content.removeChild( this.t2 );
@@ -157,9 +180,6 @@ UI.Number.prototype = {
 UI.V2 = function(target, name, callback, value1, value2 ){
     this.target = target;
 
-    this.value1 = value1;
-    this.value2 = value2;
-
     this.mouseDown = false;
     this.callback = callback || function(){};
     this.content = document.createElement( 'div' );
@@ -171,30 +191,41 @@ UI.V2 = function(target, name, callback, value1, value2 ){
     this.t1.innerHTML = name+':';
     this.content.appendChild( this.t1 );
 
-    this.t2 = document.createElement('div');
-    this.t2.className = 'UI-text';
-    this.t2.style.cssText ='width:60px; left:100px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
-    this.t2.contentEditable =true;
-    this.t2.innerHTML = this.value1;
+    this.t2 = document.createElement('input');
+    this.t2.className = 'UI-number';
+    this.t2.style.cssText ='width:60px; left:100px; pointer-events:auto; border:none;';
+    this.t2.value = value1;
     this.content.appendChild(this.t2);
 
-    this.t3 = document.createElement('div');
-    this.t3.className = 'UI-text';
-    this.t3.style.cssText ='width:60px; left:170px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
-    this.t3.contentEditable =true;
-    this.t3.innerHTML = this.value2;
+    this.t3 = document.createElement('input');
+    this.t3.className = 'UI-number';
+    this.t3.style.cssText ='width:60px; left:170px; pointer-events:auto; border:none;';
+    this.t3.value = value2;
     this.content.appendChild(this.t3);
 
-    this.fun =  function(e){ this.value1 = this.t2.innerHTML; this.value2 = this.t3.innerHTML; this.callback( [this.value1, this.value2] ) }.bind(this);
-    this.t2.addEventListener("input", this.fun, false);
-    this.t3.addEventListener("input", this.fun, false);
+    this.fun =  function(e){
+        e.stopPropagation();
+        this.callback( [this.t2.value, this.t3.value] );
+        if ( e.keyCode === 13 ) e.target.blur();
+    }.bind(this);
+
+    this.change =  function(e){
+        this.callback( [this.t2.value, this.t3.value] );
+    }.bind(this);
+
+    this.t2.addEventListener("keydown", this.fun, false);
+    this.t3.addEventListener("keydown", this.fun, false);
+    this.t2.addEventListener("change", this.change, false);
+    this.t3.addEventListener("change", this.change, false);
     
 }
 UI.V2.prototype = {
     constructor: UI.V2,
     clear:function(){
-        this.t2.removeEventListener("input", this.fun, false);
-        this.t3.removeEventListener("input", this.fun, false);
+        this.t2.removeEventListener("keydown", this.fun, false);
+        this.t3.removeEventListener("keydown", this.fun, false);
+        this.t2.removeEventListener("change", this.change, false);
+        this.t3.removeEventListener("change", this.change, false)
         
         this.content.removeChild( this.t1 );
         this.content.removeChild( this.t2 );
@@ -218,11 +249,6 @@ UI.Color = function(target, name, callback, value ){
     // type [0, 0, 0, 1]
     this.target = target;
 
-    this.value1 = (value[0]*255).toFixed(0);
-    this.value2 = (value[1]*255).toFixed(0);
-    this.value3 = (value[2]*255).toFixed(0);
-    this.value4 = (value[3]*255).toFixed(0);
-
     this.mouseDown = false;
     this.callback = callback || function(){};
     this.content = document.createElement( 'div' );
@@ -234,54 +260,59 @@ UI.Color = function(target, name, callback, value ){
     this.t1.innerHTML = name+':';
     this.content.appendChild( this.t1 );
 
-    this.t2 = document.createElement('div');
-    this.t2.className = 'UI-text';
-    this.t2.style.cssText ='width:40px; left:100px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
-    this.t2.contentEditable =true;
-    this.t2.innerHTML = this.value1;
+    this.t2 = document.createElement('input');
+    this.t2.className = 'UI-number';
+    this.t2.style.cssText ='width:40px; left:100px; pointer-events:auto; border:none;';
+    this.t2.value = (value[0]*255).toFixed(0);
     this.content.appendChild(this.t2);
 
-    this.t3 = document.createElement('div');
-    this.t3.className = 'UI-text';
-    this.t3.style.cssText ='width:40px; left:145px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
-    this.t3.contentEditable =true;
-    this.t3.innerHTML = this.value2;
+    this.t3 = document.createElement('input');
+    this.t3.className = 'UI-number';
+    this.t3.style.cssText ='width:40px; left:145px; pointer-events:auto; border:none;';
+    this.t3.value = (value[1]*255).toFixed(0);
     this.content.appendChild(this.t3);
 
-    this.t4 = document.createElement('div');
-    this.t4.className = 'UI-text';
-    this.t4.style.cssText ='width:40px; left:190px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
-    this.t4.contentEditable =true;
-    this.t4.innerHTML = this.value3;
+    this.t4 = document.createElement('input');
+    this.t4.className = 'UI-number';
+    this.t4.style.cssText ='width:40px; left:190px; pointer-events:auto; border:none;';
+    this.t4.value = (value[2]*255).toFixed(0);
     this.content.appendChild(this.t4);
 
-    this.t5 = document.createElement('div');
-    this.t5.className = 'UI-text';
-    this.t5.style.cssText ='width:40px; left:235px; pointer-events:auto; background:rgba(0,0,0,0.2);  border:none;';
-    this.t5.contentEditable =true;
-    this.t5.innerHTML = this.value4;
+    this.t5 = document.createElement('input');
+    this.t5.className = 'UI-number';
+    this.t5.style.cssText ='width:40px; left:235px; pointer-events:auto; border:none;';
+    this.t5.value = (value[3]*255).toFixed(0);
     this.content.appendChild(this.t5);
 
-    this.fun =  function(e){ 
-        this.value1 = this.t2.innerHTML; 
-        this.value2 = this.t3.innerHTML;
-        this.value3 = this.t4.innerHTML; 
-        this.value4 = this.t5.innerHTML;
-        this.callback( [this.value1/255, this.value2/255, this.value3/255, this.value4/255] )
+    this.fun =  function(e){
+        e.stopPropagation();
+        this.callback( [this.t2.value/255, this.t3.value/255, this.t4.value/255, this.t5.value/255] );
+        if ( e.keyCode === 13 ) e.target.blur();
+    }.bind(this);
+    this.change =  function(e){
+        this.callback( [this.t2.value/255, this.t3.value/255, this.t4.value/255, this.t5.value/255] );
     }.bind(this);
 
-    this.t2.addEventListener("input", this.fun, false);
-    this.t3.addEventListener("input", this.fun, false);
-    this.t4.addEventListener("input", this.fun, false);
-    this.t5.addEventListener("input", this.fun, false);
+    this.t2.addEventListener("keydown", this.fun, false);
+    this.t3.addEventListener("keydown", this.fun, false);
+    this.t4.addEventListener("keydown", this.fun, false);
+    this.t5.addEventListener("keydown", this.fun, false);
+    this.t2.addEventListener( 'change', this.change, false );
+    this.t3.addEventListener( 'change', this.change, false );
+    this.t4.addEventListener( 'change', this.change, false );
+    this.t5.addEventListener( 'change', this.change, false );
 }
 UI.Color.prototype = {
     constructor: UI.Color,
     clear:function(){
-        this.t2.removeEventListener("input", this.fun, false);
-        this.t3.removeEventListener("input", this.fun, false);
-        this.t4.removeEventListener("input", this.fun, false);
-        this.t5.removeEventListener("input", this.fun, false);
+        this.t2.removeEventListener("keydown", this.fun, false);
+        this.t3.removeEventListener("keydown", this.fun, false);
+        this.t4.removeEventListener("keydown", this.fun, false);
+        this.t5.removeEventListener("keydown", this.fun, false);
+        this.t2.removeEventListener( 'change', this.change, false );
+        this.t3.removeEventListener( 'change', this.change, false );
+        this.t4.removeEventListener( 'change', this.change, false );
+        this.t5.removeEventListener( 'change', this.change, false );
         
         this.content.removeChild( this.t1 );
         this.content.removeChild( this.t2 );
@@ -669,8 +700,9 @@ UI.Slide.prototype = {
 // CLASS
 //--------------------
 
-UI.createClass = function(name,rules){
+UI.createClass = function(name,rules,noAdd){
     var adds = '.';
+    if(noAdd)adds='';
     if(name == '*') adds = '';
     var style = document.createElement('style');
     style.type = 'text/css';
@@ -685,12 +717,14 @@ UI.createClass = function(name,rules){
     if(doRemove) element.className = element.className.replace(new RegExp("\\b"+name+"\\b","g"),"");
     else element.className = element.className+" "+name;
 }*/
-var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;';
-UI.createClass('UI-base', 'width:'+(UI.nset.width-4)+'px; height:20px; position:relative; left:0px; pointer-events:none; background:'+UI.nset.fc1+'; padding-left:10px; padding-right:10px; margin-bottom:1px;'+str);
+var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; letter-spacing:-0.3px; color:#FFF;';
+UI.createClass('UI-base', 'width:'+(UI.nset.width-4)+'px; height:20px; position:relative; left:0px; pointer-events:none; background:'+UI.nset.fc1+'; padding-left:5px; padding-right:5px; margin-bottom:1px;'+str);
 UI.createClass('UI-title', 'width:'+(UI.nset.width-4)+'px; height:30px; position:relative; left:0px; pointer-events:none; padding-left:5px; padding-right:5px; margin-bottom:1px; padding-top:8px;'+str);
 
-UI.createClass('UI-box', 'position:absolute; left:100px; top:2px; width:16px; height:16px; pointer-events:auto; cursor:pointer; border:1px solid #FFF; '+str);
+UI.createClass('UI-box', 'position:absolute; left:100px; top:3px; width:14px; height:14px; pointer-events:auto; cursor:pointer; border:2px solid rgba(255,255,255,0.4); '+str);
 UI.createClass('UI-text', 'font-size:12px; position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; text-align:Left;'+str);
+UI.createClass('input.UI-number', 'font-size:12px; position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; text-align:Left; background:rgba(0,0,0,0.2);'+str, true);
+UI.createClass('input.UI-url', 'font-size:12px; position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; text-align:Left; background:rgba(0,0,0,0.2);'+str, true);
 UI.createClass('UI-textList', 'border:1px solid '+UI.nset.fc1+'; background:'+UI.nset.fc2+'; left:100px; font-size:12px; position:absolute; cursor:pointer; width:170px; height:16px; pointer-events:auto; margin-top:2px; text-align:center;'+str);
 UI.createClass('UI-textList:hover', 'border:1px solid #FFF;'+str);
 UI.createClass('UI-list', 'border:1px solid #FFF; position:absolute; left:100px; top:17px; width:170px; height:80px; background:#000; overflow:hidden; pointer-events:none; '+str);

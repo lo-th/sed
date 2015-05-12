@@ -890,15 +890,13 @@ Serious.Editor.prototype = {
 
         if(this.move.test){
             l = this.linkTest;
-            //name = e.target.name;
             id = this.getID(name);
-            var n = name.substring(0, 1)
+            var n = name.substring(0, 1);
             var np = name.substring(1, 2);
             
             if(l.source!==-1) if(id!==l.source && n=='O'){ l.target = id; l.targetN = np; }
             if(l.target!==-1) if(id!==l.target && n=='I'){ l.source = id; l.sourceN = np; }
 
-            console.log('mmmmmm')
             this.testLink();
         }
 
