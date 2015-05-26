@@ -17397,7 +17397,7 @@ Serious.Editor.prototype = {
 
         Serious.createClass('def.basic.editor:hover', 'border:2px solid #666;'+ str);
         Serious.createClass('S-grid','position:absolute; left:0px; top:0px; pointer-events:none; width:1000px; height:1000px; background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUAQMAAAC3R49OAAAABlBMVEVMaXFTU1OXUj8tAAAAAnRSTlMAgJsrThgAAAASSURBVHicY2BgEGCgFv7//wMANusEH0fp3IoAAAAASUVORK5CYII=)repeat;'+ str);
-        Serious.createClass('S-icc', 'position:absolute; left:0px; top:-1px; text-align:center; width:40px; height:40px;'+ str);
+        Serious.createClass('S-icc', 'position:absolute; left:0px; top:1px; text-align:center; width:40px; height:40px;'+ str);
         Serious.createClass('S-grid-plus', 'position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
         Serious.createClass('S-menu', 'width:42px; height:auto; position:absolute; right:10px; top:10px; pointer-events:auto; text-align:center; background:#222; border:2px solid #333; border-radius:6px; display:none; color:#CCF;'+ str)
         // node
@@ -17450,17 +17450,14 @@ Serious.Editor.prototype = {
 
         this.initLeftMenu();
 
-       
         document.body.appendChild( this.menu );
         document.body.appendChild( this.content );
-        
 
         this.content.appendChild( this.grid );
         this.grid.appendChild( this.gridBottom );
         this.grid.appendChild( this.select );
         this.grid.appendChild( this.gridTop );
         this.content.appendChild( this.icc );
-
 
         this.content.oncontextmenu = function(e){ this.contextmenu(e); }.bind(this);
         this.content.onmouseover = function(e){ this.mouseover(e); }.bind(this);
@@ -18514,7 +18511,7 @@ Serious.Icon = function(type){
 
 Serious.Logo = function(){
     var color = 'FFF';
-    var width = 40;
+    var width = 36;
     var Kwidth = '0 0 256 256';
     var t = [];
     t[0] = "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' preserveAspectRatio='none' x='0px' y='0px' width='"+width+"px' height='"+width+"px' viewBox='"+Kwidth+"';'><g>";
