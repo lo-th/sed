@@ -7,7 +7,7 @@
 
 'use strict';
 var Seriously;
-var Serious = { version:0.4 };
+var Serious = { version:0.1 };
 
 Serious.Sources = [ 'image', 'video', 'camera', 'scene', 'texture' ];
 
@@ -31,7 +31,9 @@ Serious.Effects = [
     'whitebalance'
 ];
 
-Serious.Targets = [ 'texture-3D', 'canvas' ];
+Serious.Targets = [
+    'texture-3D', 'canvas'
+]
 
 Serious.BlendMode = [
     'normal',      'lighten',     'darken',      'multiply',   'average',
@@ -42,7 +44,6 @@ Serious.BlendMode = [
     'phoenix',     'hue',         'saturation',  'color',      'luminosity',
     'darkercolor', 'lightercolor'
 ];
-
 Serious.BlendSizeMode = [ 'bottom', 'top', 'union', 'intersection' ];
 
 Serious.Editor = function(autorun, canvas ){
@@ -55,15 +56,10 @@ Serious.Editor = function(autorun, canvas ){
 
 
     this.LAYER = 0;
+    this.TMP = [];
 
-    this.tmp = [];
-
-    this.xDecale = 60;
-    this.xprevdecale = [];
-
-    this.isFirst = true;
-
-    this.visible = true;
+    
+    
 
     this.size = {x:322, y:272};
 
@@ -81,7 +77,14 @@ Serious.Editor = function(autorun, canvas ){
     this.root_target = '';
     this.current_source_node = '';
 
+    // count  source:0, effect:1, target:2
+
+    this.links = [];
+    this.nodes = [];
     this.nodesDiv = [];
+    this.positions = [];
+    //this.count = [0,0,0];
+
 
     this.current = 'close';
     this.move = {name:'', element:null, down:false, test:false,  x:0,y:0, tx:0, ty:0, mx:0, my:0};
@@ -100,15 +103,6 @@ Serious.Editor = function(autorun, canvas ){
 
 Serious.Editor.prototype = {
     constructor: Serious.Editor,
-    showInterface:function(b){
-        if(b){
-            if( this.current !== 'close' )this.menu.style.display = 'block';
-            this.content.style.display = 'block';
-        }else{
-            this.menu.style.display = 'none';
-            this.content.style.display = 'none';
-        }
-    },
     render:function(){
         this.seriously.render();
     },
@@ -125,13 +119,13 @@ Serious.Editor.prototype = {
         Serious.createClass('S-grid-plus', 'position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
         Serious.createClass('S-menu', 'width:42px; height:auto; position:absolute; right:10px; top:10px; pointer-events:auto; text-align:center; background:#222; border:2px solid #333; border-radius:6px; display:none; color:#CCF;'+ str)
         // node
-        Serious.createClass('S-S', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.sc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
-        Serious.createClass('S-E', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.fc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
-        Serious.createClass('S-T', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.tc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
+        Serious.createClass('S-source', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.sc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
+        Serious.createClass('S-effect', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.fc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
+        Serious.createClass('S-target', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.tc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
         // node over
-        Serious.createClass('S-S:hover', 'background:'+this.nset.sc2+'; ');
-        Serious.createClass('S-E:hover', 'background:'+this.nset.fc2+'; ');
-        Serious.createClass('S-T:hover', 'background:'+this.nset.tc2+'; ');
+        Serious.createClass('S-source:hover', 'background:'+this.nset.sc2+'; ');
+        Serious.createClass('S-effect:hover', 'background:'+this.nset.fc2+'; ');
+        Serious.createClass('S-target:hover', 'background:'+this.nset.tc2+'; ');
         // node icon
         Serious.createClass('S-icon', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
         // selected
@@ -174,16 +168,16 @@ Serious.Editor.prototype = {
 
         this.initLeftMenu();
 
-       
         document.body.appendChild( this.menu );
         document.body.appendChild( this.content );
-        
-
         this.content.appendChild( this.grid );
         this.grid.appendChild( this.gridBottom );
         this.grid.appendChild( this.select );
         this.grid.appendChild( this.gridTop );
         this.content.appendChild( this.icc );
+
+
+
 
 
         this.content.oncontextmenu = function(e){ this.contextmenu(e); }.bind(this);
@@ -218,16 +212,14 @@ Serious.Editor.prototype = {
             b.onclick = function(e){  this.leftMenuSelected(e.target.name);  }.bind(this);
             this.optionButton.push(b);
 
-            // prepa variables
-            this.xprevdecale.push( [-40,-40,-40] );
-            this.tmp.push( { nodes:[], links:[] } );
+            this.TMP.push( { nodes:[], links:[], count:[0,0,0], positions:[] } );
 
         }
 
         this.leftMenuSelected(0);
     },
 
-    leftMenuSelected:function(n, only){
+    leftMenuSelected:function(n){
         var i = this.optionButton.length;
         while(i--){
             if(n == i){
@@ -236,33 +228,31 @@ Serious.Editor.prototype = {
                 this.optionButton[i].className = 'S-sideButton';
             }
         }
-        if(!only)this.refresh(n);
+
+        this.refresh(n);
     },
 
-
-
-    //------------------------
     // ADD
-    //------------------------
-    
 
-    add:function(type, obj, layer){
+    add:function(type, obj, n){
+        n = n || 0;
+        var isForAll = false;
+        if(n=='X') isForAll = true;
 
-        layer = layer || 0;
 
         obj = obj || {};
         var node, prefix;
         switch(type){
             case 'camera':
-                prefix = 'S';
+                prefix = 'source';
                 node = this.seriously.source('camera'); 
             break;
             case 'texture':
-                prefix = 'S';
+                prefix = 'source';
                 node = this.seriously.source(obj.texture, null , {}); 
             break;
             case 'video':
-                prefix = 'S';
+                prefix = 'source';
                 node = document.createElement('video');
                 node.autoPlay = true;
                 node.loop = true;
@@ -270,7 +260,7 @@ Serious.Editor.prototype = {
                 node.url = obj.src;
             break;
             case 'image':
-                prefix = 'S'; 
+                prefix = 'source'; 
                 node = document.createElement('img');
                 node.url = obj.src;
             break;
@@ -280,116 +270,111 @@ Serious.Editor.prototype = {
             break;*/
             //--------------------------------- target
             case 'texture-3D':
-                prefix = 'T';
+                prefix = 'target';
                 node = this.seriously.target( obj.texture, { canvas:obj.canvas || this.glCanvas });
             break;
             case 'canvas-3D':
-                prefix = 'T';
+                prefix = 'target';
                 node = this.seriously.target( obj.canvas || this.glCanvas );
             break;
             //--------------------------------- filter
             case 'reformat':
-                prefix = 'E';
+                prefix = 'effect';
                 node = this.seriously.transform('reformat');
             break;
             default:
-                prefix = 'E';
+                prefix = 'effect';
                 node = this.seriously.effect(type);
         }
 
         for(var e in obj){
-            if(e!=='texture' && e!=='canvas' && e!=='id' && e!=='n' && e in node){
+            if(e!=='texture' && e!=='canvas' && e!=='id' && e in node){
                 node[e] = obj[e];
             }
         }
 
         var id;
-        if( obj.id !== undefined ) id = obj.id;
-        else id = this.tmp[layer].nodes.length;
 
-        var name = prefix +'_'+ id + '.' + type;
+        if(isForAll){ 
+            n = 8;
+            while(n--){
+                if( obj.id !== undefined ){ id = obj.id; }
+                else id = this.TMP[n].nodes.length || 0;
 
-        // remove old
-        if(this.tmp[layer].nodes[id] !== undefined){
-            this.tmp[layer].nodes[id].node.destroy();
-            switch(prefix){
-                case 'S': this.xprevdecale[layer][0]-=this.xDecale; break;
-                case 'E': this.xprevdecale[layer][1]-=this.xDecale; break;
-                case 'T': this.xprevdecale[layer][2]-=this.xDecale; break;
+                node.name = prefix +'_'+ id + '.' + type;
+
+                if(this.TMP[n].nodes[id]) this.TMP[n].nodes[id].destroy();
+                this.TMP[n].nodes[id] = node;
+                this.TMP[n].positions[id] = new Serious.Point();
+                switch(prefix){
+                    case 'source': this.TMP[n].count[0]++; break;
+                    case 'effect': this.TMP[n].count[1]++; break;
+                    case 'target': this.TMP[n].count[2]++; break;
+                }
             }
-            console.log('destroy')
+        }else{
+            if( obj.id !== undefined ){ id = obj.id; }
+            else id = this.TMP[n].nodes.length || 0;
+
+            node.name = prefix +'_'+ id + '.' + type;
+
+            if(this.TMP[n].nodes[id]) this.TMP[n].nodes[id].destroy();
+            this.TMP[n].nodes[id] = node;
+            this.TMP[n].positions[id] = new Serious.Point();
+
+            switch(prefix){
+                case 'source': this.TMP[n].count[0]++; break;
+                case 'effect': this.TMP[n].count[1]++; break;
+                case 'target': this.TMP[n].count[2]++; break;
+            }
         }
 
-        var x, y;
-
-        switch(prefix){
-            case 'S': 
-                this.xprevdecale[layer][0]+=this.xDecale;   
-                x = this.xprevdecale[layer][0];   
-                y = 20;
-            break;
-            case 'E': 
-                this.xprevdecale[layer][1]+=this.xDecale;
-                x = this.xprevdecale[layer][1];
-                y = 100;
-            break;
-            case 'T': 
-                this.xprevdecale[layer][2]+=this.xDecale;
-                x = this.xprevdecale[layer][2];   
-                y = 180;
-            break;
-        }
-
-        this.tmp[layer].nodes[id] = { n:obj.n || prefix +'_'+ id, name:name, node:node, x:x, y:y }
+        
         
         return node;
     },
 
-    addOnAll:function(type, obj ){
-        var i = 8;
-        while(i--){
-        //for(var i=0; i<8; i++){
-            this.add(type, obj, i);
-        }
-    },
-
-    remove:function(){
-
-    },
-
-    //-----------------------------------------------------------
-
-    changeLayer:function(layer){
-        this.LAYER = layer || 0;
-        //this.nodes = this.TMP[this.LAYER].nodes;
-        //this.links = this.TMP[this.LAYER].links;
-        ///this.positions = this.TMP[this.LAYER].positions;
+    changeLayer:function(n){
+        this.LAYER = n || 0;
+        this.nodes = this.TMP[this.LAYER].nodes;
+        this.links = this.TMP[this.LAYER].links;
+        this.positions = this.TMP[this.LAYER].positions;
         //this.count = this.TMP[this.LAYER].count;
     },
 
     // DISPLAY 
-
-    refreshOnly:function(layer){
-        layer = layer || 0;
-        if(layer!==this.LAYER){
-            this.LAYER = layer;
-            this.applyLinks();
-            this.leftMenuSelected(layer,true);
-        }
-        this.isFirst = false;
-    },
     
-    refresh:function(layer, first){
+    refresh:function(n, first){
         this.clear();
 
-        layer = layer || 0;
+        n = n || 0;
 
-        if(layer!==this.LAYER || first) this.LAYER = layer;
+        if(n!==this.LAYER || first){
+            this.LAYER = n || 0;
+            this.nodes = this.TMP[this.LAYER].nodes;
+            this.links = this.TMP[this.LAYER].links;
+            this.positions = this.TMP[this.LAYER].positions;
+            //this.count = this.TMP[this.LAYER].count;
+        }
 
-        var i = this.tmp[this.LAYER].nodes.length;
 
-        while(i--) this.showNode( this.tmp[this.LAYER].nodes[i].name );
-        
+
+
+        var name, prefix, id, i;
+        i = this.TMP[this.LAYER].length;
+        while(i--){
+            name = this.TMP[this.LAYER].nodes[i].name;
+            //prefix = name.substring(0, name.lastIndexOf("_"));
+            
+            //this.positions.push( new Serious.Point() );
+            this.show( this.TMP[this.LAYER].nodes[i].name );
+        }
+
+       /* i = this.nodes.length;
+        while(i--){
+            this.show( this.TMP[this.LAYER].nodes[i].name );
+        }*/
+
         this.updateLink();
         this.applyLinks();
     },
@@ -408,8 +393,8 @@ Serious.Editor.prototype = {
         this.menu.style.display = 'block';
         this.gridBottom.style.display = 'block';
 
-        if(this.isFirst)this.refresh(0, true);
-        else this.refresh(this.LAYER);
+
+        this.refresh(0, true);
     },
 
     // CLOSE
@@ -422,18 +407,17 @@ Serious.Editor.prototype = {
         this.menu.style.display = 'none';
         this.gridBottom.style.display = 'none';
         this.clear();
-        this.isFirst = false;
     },
 
     // CLEAR
 
     clear:function(){
         this.clearSelector();
-        /*var node, i = this.nodes.length;
+        var node, i = this.nodes.length;
         while(i--){
             node = this.nodes[i];
             while(node.firstChild) { node.removeChild(node.firstChild); }
-        }*/
+        }
         while(this.gridTop.firstChild) { this.gridTop.removeChild(this.gridTop.firstChild); }
         this.nodesDiv = [];
     },
@@ -449,59 +433,72 @@ Serious.Editor.prototype = {
     getType:function(name){
         return name.substring(name.lastIndexOf(".")+1, name.length);
     },
-
-    getIDByN:function(n){
-        var i = this.tmp[this.LAYER].nodes.length;
-        while(i--){ if(n == this.tmp[this.LAYER].nodes[i].n ) return i; }
+    destroy:function(ID){
+        this.byID(ID).destroy();
     },
- 
-    byID:function(ID, layer){
-        layer = layer || this.LAYER;
-        var i = this.tmp[layer].nodes.length;
-        while(i--){ if(ID == i) return this.tmp[layer].nodes[i].node; }
+    byNAME:function(name){
+        var node;
+        var i = this.nodes.length;
+        while(i--){
+            node = this.nodes[i];
+            if(node.name==name) return node;
+        }
     },
-    byN:function(n, layer){
-        layer = layer || this.LAYER;
-        var i = this.tmp[layer].nodes.length;
-        while(i--){ if(n == this.tmp[layer].nodes[i].n ) return this.tmp[layer].nodes[i].node; }
+    byID:function(ID){
+        var node, name, id;
+       // var i = this.nodes.length;
+        var i = this.TMP[this.LAYER].nodes.length;
+        while(i--){
+            node = this.TMP[this.LAYER].nodes[i];
+            //node = this.nodes[i];
+            name = node.name;
+            id = this.getID(name);
+            if(ID==id) return node;
+        }
     },
 
     // SHOW NODE
 
-    showNode:function(name){
+    show:function(name){
         var basedecal = 60;
         var inner = false, outer=false, inner2 = false, outer2 = false;
         var inn, out, inn2;
-
+        var prefix = name.substring(0, name.lastIndexOf("_"));
         var id = this.getID(name);
         var type = this.getType(name);
-        var prefix = this.getPrefix(name);
+
+        var posX = (20 + id*basedecal);
+        var posY = 20;
 
         var node = document.createElement('div');
         node.className = 'S-'+ prefix;
+        this.gridTop.appendChild(node);
         node.name = name;
 
-        this.gridTop.appendChild(node);
-        
+
         this.nodesDiv[id] = node;
 
         var icon = document.createElement('div');
         icon.className = 'S-icon';
         icon.innerHTML =  Serious.Icon(type);
         node.appendChild(icon);
-        node.style.left = this.tmp[this.LAYER].nodes[id].x + 'px';
-        node.style.top = this.tmp[this.LAYER].nodes[id].y + 'px';
+
+
 
         switch(prefix){
-            case 'S':
+            case 'source':
                 outer = true;
             break;
-            case 'E':
+            case 'effect':
+                posX -= this.TMP[this.LAYER].count[0]*basedecal;
+                posY =+ 80+20;
                 inner = true; outer = true;
                 if(type=='blend' || type=='split') inner2 = true;
                 if(type=='filter') outer2 = true;
             break;
-            case 'T':
+            case 'target':
+                posX -= this.TMP[this.LAYER].count[0]*basedecal + this.TMP[this.LAYER].count[1]*basedecal;
+                posY =+ 140+40;
                 inner = true;
             break;
         }
@@ -528,6 +525,16 @@ Serious.Editor.prototype = {
             inn.style.left = '6px';
             node.appendChild(inn2);
         }
+
+        if(this.positions[id].x == 0 && this.positions[id].y == 0 ){
+            this.positions[id].x = posX;
+            this.positions[id].y = posY;
+            this.TMP[this.LAYER].positions[id].x = posX;
+            this.TMP[this.LAYER].positions[id].y = posY;
+        }
+
+        node.style.left = this.positions[id].x + 'px';
+        node.style.top = this.positions[id].y + 'px';
     },
 
     switchIndex:function(NAME){
@@ -547,18 +554,14 @@ Serious.Editor.prototype = {
 
     //----------------------------------
 
-    addLink:function(target, source, st, sn, layer){
-        if(isNaN(target)) target = this.getIDByN(target);
-        if(isNaN(source)) source = this.getIDByN(source);
-
-        layer = layer || 0;
-        var obj = {source:source, target:target, sourceN:sn || 0, targetN:sn || 0};
+    addLink:function(target,source, st, sn, n){
+        n = n || 0;
+        var obj = {source:this.getID(source.name), target:this.getID(target.name), sourceN:sn || 0, targetN:sn || 0};
         if(obj.source!==-1 && obj.target!==-1){
             this.testIfExist();
             var link = new Serious.Link(this, obj);
             //this.links.push(link);
-            //this.TMP[n].links.push(link);
-            this.tmp[layer].links.push(link);
+            this.TMP[n].links.push(link);
         }
     },
 
@@ -574,36 +577,39 @@ Serious.Editor.prototype = {
     createLink:function(obj){
         var link = new Serious.Link(this, obj);
         link.apply();
-        this.tmp[this.LAYER].links.push(link);
+        this.links.push(link);
+        this.TMP[this.LAYER].links.push(link);
         this.updateLink();
     },
     removeLink:function(n){
-        if(this.tmp[this.LAYER].links[n]){
-            this.tmp[this.LAYER].links[n].clear();
-            this.tmp[this.LAYER].links.splice(n, 1);
+        if(this.links[n]){
+            this.links[n].clear();
+            this.links.splice(n, 1);
+            this.TMP[this.LAYER].links.splice(n, 1);
         }
     },
     applyLinks:function(){
-        var i = this.tmp[this.LAYER].links.length;
-        while(i--) this.tmp[this.LAYER].links[i].apply();
+        var i = this.links.length;
+        while(i--)this.links[i].apply();
     },
     updateLink:function(){
         this.linkcontext.clearRect(0, 0, 2000, 2000);
-        var i = this.tmp[this.LAYER].links.length;
-        while(i--) this.tmp[this.LAYER].links[i].draw();
+        var link;
+        var i = this.links.length;
+        while(i--){
+            link = this.links[i];
+            link.draw();
+        }
     },
     testIfExist:function(s, t){
         var l = this.linkTest;
         var rem = [];
         var m, r1, r2, j, a1= false, a2= false;
-       // var i = this.links.length;
-        var i = this.tmp[this.LAYER].links.length;
-        //var i = this.TMP[this.LAYER].links.length;
+        var i = this.links.length;
         while(i--){
             a1 = false;
             a2 = false;
-
-            m = this.tmp[this.LAYER].links[i].obj;
+            m = this.links[i].obj;
             if(m.source == l.source && m.sourceN == l.sourceN){ r1 = i; a1 = true;}
             // hey whe can have multiple targets :)
             //if(m.target == l.target && m.targetN == l.targetN){ r2 = i; a2 = true;}
@@ -641,8 +647,8 @@ Serious.Editor.prototype = {
         } else {
             var id = this.getID(name);
             this.select.style.display = 'block';
-            this.select.style.left = this.tmp[this.LAYER].nodes[id].x + 'px';
-            this.select.style.top = this.tmp[this.LAYER].nodes[id].y + 'px';
+            this.select.style.left = this.positions[id].x + 'px';
+            this.select.style.top = this.positions[id].y + 'px';
             this.selectID = id;
             this.menu.style.height = 'auto';
 
@@ -929,44 +935,44 @@ Serious.Editor.prototype = {
     addTitle:function(id, type, prefix){
         var s = new UIsr.Title(this.menu, id, type, prefix);
         switch(prefix){
-            case 'S': s.content.style.background = this.nset.sc2; break;
-            case 'E': s.content.style.background = this.nset.fc2; break;
-            case 'T': s.content.style.background = this.nset.tc2; break;
+            case 'source': s.content.style.background = this.nset.sc2; break;
+            case 'effect': s.content.style.background = this.nset.fc2; break;
+            case 'target': s.content.style.background = this.nset.tc2; break;
         }
         this.sels.push(s);
     },
     addString:function(id, name){
-        var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
+        var callback = function(v){ this.nodes[id][name] = v; }.bind(this);
         //this.sels.push(new UIsr.Number(this.menu, name, callback, this.nodes[id][name]));
     },
     addNumber:function(id, name, min, step){
-        var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        this.sels.push(new UIsr.Number(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]));
+        var callback = function(v){ this.nodes[id][name] = v; }.bind(this);
+        this.sels.push(new UIsr.Number(this.menu, name, callback, this.nodes[id][name]));
     },
     addV2:function(id, name, min){
-        var callback = function(ar){ this.tmp[this.LAYER].nodes[id].node[name]=ar;}.bind(this);
-        this.sels.push( new UIsr.V2(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node[name][0], this.tmp[this.LAYER].nodes[id].node[name][1]) );
+        var callback = function(ar){ this.nodes[id][name]=ar;}.bind(this);
+        this.sels.push( new UIsr.V2(this.menu, name, callback, this.nodes[id][name][0], this.nodes[id][name][1]) );
     },
     addColor:function(id, name){
-        var callback = function(ar){ this.tmp[this.LAYER].nodes[id].node[name] = ar; }.bind(this);
-        this.sels.push( new UIsr.Color(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]) );
+        var callback = function(ar){ this.nodes[id][name] = ar; }.bind(this);
+        this.sels.push( new UIsr.Color(this.menu, name, callback, this.nodes[id][name]) );
     },
     addBool:function(id, name){
-        var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        this.sels.push( new UIsr.Bool(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]) );
+        var callback = function(v){ this.nodes[id][name] = v; }.bind(this);
+        this.sels.push( new UIsr.Bool(this.menu, name, callback, this.nodes[id][name]) );
     },  
     addList:function(id, name, list){
-        var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        this.sels.push( new UIsr.List(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node[name], list) );
+        var callback = function(v){ this.nodes[id][name] = v; }.bind(this);
+        this.sels.push( new UIsr.List(this.menu, name, callback, this.nodes[id][name], list) );
     },
     addSlide:function(id, name, min, max, precision){
-        var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        this.sels.push( new UIsr.Slide(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node[name], min, max, precision));
+        var callback = function(v){ this.nodes[id][name] = v; }.bind(this);
+        this.sels.push( new UIsr.Slide(this.menu, name, callback, this.nodes[id][name], min, max, precision));
     },
     addURL:function(id){
         var name = 'src';
-        var callback = function(v){ console.log(v); this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        var s = new UIsr.Url(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node.url);
+        var callback = function(v){ console.log(v); this.nodes[id][name] = v; }.bind(this);
+        var s = new UIsr.Url(this.menu, name, callback, this.nodes[id].url);
         s.content.style.background = this.nset.sc1;
         this.sels.push( s );
     },
@@ -1076,12 +1082,14 @@ Serious.Editor.prototype = {
             }else{
                 this.move.mx = (this.move.mx * 0.05).toFixed(0) * 20;
                 this.move.my = (this.move.my * 0.05).toFixed(0) * 20;
+                this.positions[id].x = this.move.mx;
+                this.positions[id].y = this.move.my;
 
-                this.tmp[this.LAYER].nodes[id].x = this.move.mx;
-                this.tmp[this.LAYER].nodes[id].y = this.move.my;
+                this.TMP[this.LAYER].positions[id].x = this.move.mx;
+                this.TMP[this.LAYER].positions[id].y = this.move.my;
 
-                this.select.style.left = this.move.mx + 'px';
-                this.select.style.top = this.move.my + 'px';
+                this.select.style.left = this.positions[id].x + 'px';
+                this.select.style.top = this.positions[id].y + 'px';
                 this.updateLink();
             }
             if(this.move.element!==null){
@@ -1101,28 +1109,32 @@ Serious.Editor.prototype = {
 
 //__________________________________
 
+//--------------------
+// POINT
+//--------------------
+
+Serious.Point = function(x,y){
+    this.x = x || 0;
+    this.y = y || 0;
+}
 
 //--------------------
 // LINK
 //--------------------
 
 Serious.Link = function(root, obj){
-    this.pos = [0,0,0,0];
+    this.start = new Serious.Point();
+    this.end = new Serious.Point();
     this.root = root;
     this.obj = obj;
 }
 Serious.Link.prototype = {
     constructor: Serious.Link,
     clear:function(){
-        var targetNode = this.root.tmp[this.root.LAYER].nodes[this.obj.target];
-        var sourceNode = this.root.tmp[this.root.LAYER].nodes[this.obj.source];
+        var targetNode = this.root.nodes[this.obj.target];
+        var sourceNode = this.root.nodes[this.obj.source];
 
-        //var targetNode = this.root.TMP[this.root.LAYER].nodes[this.obj.target];
-        //var sourceNode = this.root.TMP[this.root.LAYER].nodes[this.obj.source];
-        //var targetNode = this.root.nodes[this.obj.target];
-        //var sourceNode = this.root.nodes[this.obj.source];
-
-        //var type = this.root.getType(sourceNode.name);
+        var type = this.root.getType(sourceNode.name);
 
         // !!! TEST
         //if(this.obj.sourceN == 0) sourceNode.source.destroy();
@@ -1144,23 +1156,30 @@ Serious.Link.prototype = {
         if(this.obj.sourceN == 2) sourceNode.top = undefined;*/
     },
     apply:function(){
+        //console.log('apply', this.obj.source, this.obj.target, this.obj.sourceN)
 
-        var sourceNode = this.root.tmp[this.root.LAYER].nodes[this.obj.source];
-        var targetNode = this.root.tmp[this.root.LAYER].nodes[this.obj.target];
-
+        var sourceNode = this.root.nodes[this.obj.source];
+        var targetNode = this.root.nodes[this.obj.target];
         var type = this.root.getType(sourceNode.name);
 
-        if(this.obj.sourceN == 0) sourceNode.node.source = targetNode.node;
-        if(this.obj.sourceN == 1){ 
-            if(type=='blend') sourceNode.node.bottom = targetNode.node;
-            if(type=='split') sourceNode.node.sourceA = targetNode.node;
-        }
-        if(this.obj.sourceN == 2){ 
-            if(type=='blend') sourceNode.node.top = targetNode.node;  
-            if(type=='split') sourceNode.node.sourceB = targetNode.node;
+
+        if(this.root.root_source!==''){
+            //console.log('mmm',targetNode.name, sourceNode.name, this.root.root_source)
+            if(targetNode.name == this.root.root_source) this.root.current_source_node = sourceNode.name;
         }
 
-        //targetNode.parent = sourceNode.name;
+        if(this.obj.sourceN == 0) sourceNode.source = targetNode;
+        if(this.obj.sourceN == 1){ 
+            if(type=='blend') sourceNode.bottom = targetNode;
+            if(type=='split') sourceNode.sourceA = targetNode;
+        }
+        if(this.obj.sourceN == 2){ 
+            if(type=='blend') sourceNode.top = targetNode;  
+            if(type=='split') sourceNode.sourceB = targetNode;
+        }
+
+        targetNode.parent = sourceNode.name;
+        //console.log('apply',  sourceNode.source)
     },
     draw:function(){
         var sx = 0;
@@ -1169,20 +1188,15 @@ Serious.Link.prototype = {
         if(this.obj.sourceN == 1) sx = -8;
         //if(this.obj.targetN == 2) tx = 8;
         if(this.obj.sourceN == 2) sx = 8;
-
-
-        this.pos[0] = this.root.tmp[this.root.LAYER].nodes[this.obj.source].x+20+sx;
-        this.pos[1] = this.root.tmp[this.root.LAYER].nodes[this.obj.source].y;
-        this.pos[2] = this.root.tmp[this.root.LAYER].nodes[this.obj.target].x+20+tx;
-        this.pos[3] = this.root.tmp[this.root.LAYER].nodes[this.obj.target].y+40;
+        this.start.x = this.root.positions[this.obj.source].x+20+sx;
+        this.start.y = this.root.positions[this.obj.source].y;
+        this.end.x = this.root.positions[this.obj.target].x+20+tx;
+        this.end.y = this.root.positions[this.obj.target].y+40;
 
         var ctx = this.root.linkcontext;
         ctx.beginPath();
-        //ctx.moveTo(this.start.x, this.start.y);
-        //ctx.bezierCurveTo(this.start.x, this.start.y-20, this.end.x, this.end.y+20, this.end.x, this.end.y);
-
-        ctx.moveTo(this.pos[0], this.pos[1]);
-        ctx.bezierCurveTo(this.pos[0], this.pos[1]-20, this.pos[2], this.pos[3]+20, this.pos[2], this.pos[3]);
+        ctx.moveTo(this.start.x, this.start.y);
+        ctx.bezierCurveTo(this.start.x, this.start.y-20, this.end.x, this.end.y+20, this.end.x, this.end.y);
         //ctx.lineTo(this.end.x, this.end.y);
         //ctx.closePath();
         ctx.lineWidth = 2;

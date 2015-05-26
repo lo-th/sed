@@ -18,7 +18,7 @@ body { font-family:monospace; background:#222; font-size:12px; color:#fff;}
 
 <body>
 <canvas id='canvas'></canvas>
-<div id='debug'>Seriously Editor<br>version 0.2 alpha</div>
+<div id='debug'>Seriously Editor<br>version 0.4 alpha</div>
 <script>
 
 
@@ -40,21 +40,23 @@ var tx3 = v.addSeriousTexture();
 // init serious video effect
 var serious = new Serious.Editor( true, v.canvas );
 
-serious.add('image', {src:'images/akira.jpg'});
-serious.add('image', {src:'images/moeb.jpg'});
-serious.add('image', {src:'images/rank.jpg'});
-serious.add('image', {src:'images/gime.jpg'});
+serious.add('image', {n:'s1', src:'images/akira.jpg'});
+serious.add('image', {n:'s2', src:'images/moeb.jpg'});
+serious.add('image', {n:'s3', src:'images/rank.jpg'}, 3);
+serious.add('image', {n:'s4', src:'images/gime.jpg'});
 
-serious.add('split');
-serious.add('bleach-bypass');
-serious.add('brightness-contrast');
-serious.add('blend');
-serious.add('edge');
+serious.add('split', {n:'f1'});
+serious.add('bleach-bypass', {n:'f2'});
+serious.add('brightness-contrast', {n:'f3'});
+serious.add('blend', {n:'f4'});
+serious.add('edge', {n:'f5'});
 
-serious.add('texture-3D', { texture: tx1 });
-serious.add('texture-3D', { texture: tx2 });
-serious.add('texture-3D', { texture: tx3 });
+serious.add('texture-3D', { n:'t1', texture: tx2 }  );
+serious.add('texture-3D', { n:'t2', texture: tx3 }  );
+serious.addOnAll('texture-3D', { n:'t3', texture: tx1 }  );
 
+serious.addLink('s1', 'f2');
+serious.addLink('f2', 't1');
 
 var m0 = v.addPlane(tx1);
 var m1 = v.addPlane(tx2);
