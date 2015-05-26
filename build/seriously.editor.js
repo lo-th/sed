@@ -17397,7 +17397,7 @@ Serious.Editor.prototype = {
 
         Serious.createClass('def.basic.editor:hover', 'border:2px solid #666;'+ str);
         Serious.createClass('S-grid','position:absolute; left:0px; top:0px; pointer-events:none; width:1000px; height:1000px; background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUAQMAAAC3R49OAAAABlBMVEVMaXFTU1OXUj8tAAAAAnRSTlMAgJsrThgAAAASSURBVHicY2BgEGCgFv7//wMANusEH0fp3IoAAAAASUVORK5CYII=)repeat;'+ str);
-        Serious.createClass('S-icc', 'font-size:32px; position:absolute; left:0px; top:0px; text-align:center; width:40px; height:40px; font-weight:bold;'+ str);
+        Serious.createClass('S-icc', 'position:absolute; left:0px; top:-1px; text-align:center; width:40px; height:40px;'+ str);
         Serious.createClass('S-grid-plus', 'position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
         Serious.createClass('S-menu', 'width:42px; height:auto; position:absolute; right:10px; top:10px; pointer-events:auto; text-align:center; background:#222; border:2px solid #333; border-radius:6px; display:none; color:#CCF;'+ str)
         // node
@@ -17416,7 +17416,7 @@ Serious.Editor.prototype = {
         Serious.createClass('S-in', 'width:8px; height:8px; position:absolute; left:16px; top:-4px; border:2px solid #0F0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;'+ str);
         Serious.createClass('S-out', 'width:8px; height:8px; position:absolute; left:16px; bottom:-4px; border:2px solid #FF0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;'+ str);
 
-        Serious.createClass('S-sideButton', 'position:absolute; width:30px; height:18px; background:#222; margin-left:-30px; padding-top:3px; border-top-left-radius:4px; border-bottom-left-radius:4px; cursor:pointer; ');
+        Serious.createClass('S-sideButton', 'position:absolute; width:25px; height:18px; background:#222; margin-left:-25px; padding-top:3px; border-top-left-radius:4px; border-bottom-left-radius:4px; cursor:pointer; ');
         Serious.createClass('S-sideButton:hover', 'background:#AAA; color:#000; ');
         Serious.createClass('S-sideButton-select:hover', 'background:#AAA; color:#000; ');
         Serious.createClass('sideselect', ' background:#2A2; color:#fff; ');
@@ -17446,7 +17446,7 @@ Serious.Editor.prototype = {
         
         this.icc =  document.createElement('div');
         this.icc.className = 'S-icc';
-        this.icc.innerHTML = 'S';
+        this.icc.innerHTML = Serious.Logo();
 
         this.initLeftMenu();
 
@@ -17488,7 +17488,7 @@ Serious.Editor.prototype = {
             b =  document.createElement('div');
             b.className = 'S-sideButton';
             b.innerHTML = i;
-            b.style.top = -255 + ((i+1)*30) + 'px';
+            b.style.top = -255 + ((i+1)*25) + 'px';
             b.name = i;
             this.menu.appendChild( b );
             b.onclick = function(e){  this.leftMenuSelected(e.target.name);  }.bind(this);
@@ -17520,7 +17520,6 @@ Serious.Editor.prototype = {
     //------------------------
     // ADD
     //------------------------
-    
 
     add:function(type, obj, layer){
 
@@ -17550,10 +17549,6 @@ Serious.Editor.prototype = {
                 node = document.createElement('img');
                 node.url = obj.src;
             break;
-            /*case 'scene':
-                prefix = 'source'; 
-                node = document.createElement('img');
-            break;*/
             //--------------------------------- target
             case 'texture-3D':
                 prefix = 'T';
@@ -17623,10 +17618,7 @@ Serious.Editor.prototype = {
 
     addOnAll:function(type, obj ){
         var i = 8;
-        while(i--){
-        //for(var i=0; i<8; i++){
-            this.add(type, obj, i);
-        }
+        while(i--) this.add(type, obj, i);
     },
 
     remove:function(){
@@ -17634,14 +17626,6 @@ Serious.Editor.prototype = {
     },
 
     //-----------------------------------------------------------
-
-    changeLayer:function(layer){
-        this.LAYER = layer || 0;
-        //this.nodes = this.TMP[this.LAYER].nodes;
-        //this.links = this.TMP[this.LAYER].links;
-        ///this.positions = this.TMP[this.LAYER].positions;
-        //this.count = this.TMP[this.LAYER].count;
-    },
 
     // DISPLAY 
 
@@ -17705,17 +17689,14 @@ Serious.Editor.prototype = {
 
     clear:function(){
         this.clearSelector();
-        /*var node, i = this.nodes.length;
-        while(i--){
-            node = this.nodes[i];
-            while(node.firstChild) { node.removeChild(node.firstChild); }
-        }*/
         while(this.gridTop.firstChild) { this.gridTop.removeChild(this.gridTop.firstChild); }
         this.nodesDiv = [];
     },
     
+    //-----------------------------------------------------------
 
     // TOOLS
+
     getPrefix:function(name){
         return name.substring(0, name.lastIndexOf("_"));
     },
@@ -17741,6 +17722,8 @@ Serious.Editor.prototype = {
         var i = this.tmp[layer].nodes.length;
         while(i--){ if(n == this.tmp[layer].nodes[i].n ) return this.tmp[layer].nodes[i].node; }
     },
+
+    //-----------------------------------------------------------
 
     // SHOW NODE
 
@@ -17898,12 +17881,9 @@ Serious.Editor.prototype = {
         while(i--) this.removeLink(rem[i]);
     },
 
-    // BASIC MENU
-
-
+    //-----------------------------------------------------------
 
     // SELECTOR
-
 
     selector:function(name){
         this.clearSelector();
@@ -18247,6 +18227,9 @@ Serious.Editor.prototype = {
         this.sels.push( s );
     },
 
+
+    //-----------------------------------------------------------
+
     // MOUSE
 
     contextmenu:function(e){
@@ -18375,7 +18358,12 @@ Serious.Editor.prototype = {
     }
 }
 
-//__________________________________
+
+
+
+
+
+//-----------------------------------------------------------
 
 
 //--------------------
@@ -18467,7 +18455,13 @@ Serious.Link.prototype = {
     }
 }
 
-//__________________________________
+
+
+
+
+
+//-----------------------------------------------------------
+
 
 //--------------------
 // CSS CLASS
@@ -18511,6 +18505,20 @@ Serious.Icon = function(type){
         //filter
         default: t[1]="<path fill='#"+color+"' d='M 21 20 Q 24.4 17 23 13 22.5 11.6 20.9 10 L 18.9 10 Q 20.4 11.5 20.95 13 22.4 16.95 19 20 15.35 23.4 16.45 27 16.9 28.2 17.85 29.1 18.35 29.55 19 30 L 21 30 Q 19.1 28.3 18.5 27 17.05 23.65 21 20 M 20.2 14 Q 20.14 13.51 20 13 L 19.55 12 10 12 10 28 16.05 28 15.5 27 Q 15.28 26.50 15.15 26 L 12 26 12 14 20.2 14 M 21.9 10 Q 23.3 11.4 23.6 12 L 28 12 28 28 20.05 28 Q 20.4 28.5 20.9 29 21.4 29.5 22 30 L 30 30 30 10 21.9 10 Z'/>";break;
     }
+    t[2] = "</g></svg>";
+    return t.join("\n");
+}
+
+
+// LOGO SVG
+
+Serious.Logo = function(){
+    var color = 'FFF';
+    var width = 40;
+    var Kwidth = '0 0 256 256';
+    var t = [];
+    t[0] = "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' preserveAspectRatio='none' x='0px' y='0px' width='"+width+"px' height='"+width+"px' viewBox='"+Kwidth+"';'><g>";
+    t[1] = "<path fill='#"+color+"' d='M 184.75 66.95 L 189.75 54.95 149.05 38.1 Q 128.05 29.35 107 38.15 86 46.8 77.25 67.85 68.55 88.85 77.25 110.05 85.95 130.95 106.95 139.7 L 134.45 151.4 Q 140.85 154.1 143.6 160.55 146.3 167.1 143.6 173.6 140.9 180.05 134.4 182.8 127.85 185.5 121.45 182.8 L 80.75 165.95 75.75 177.95 116.45 194.8 Q 116.6994140625 194.90390625 116.95 195 128.1015625 199.444921875 139.35 194.75 150.85 190.05 155.6 178.6 160.35 167.1 155.6 155.55 150.85 144.15 139.45 139.4 L 139.4 139.35 111.95 127.7 Q 95.9 121.05 89.25 105.05 82.6 88.95 89.25 72.85 95.9 56.75 112 50.15 128 43.45 144.05 50.1 L 184.75 66.95 M 175.2 90.05 L 180.2 78.05 139.5 61.2 Q 128.1 56.45 116.6 61.25 105.1 65.95 100.35 77.4 95.6 88.9 100.35 100.45 105.1 111.85 116.55 116.6 L 144 128.3 Q 160.05 134.95 166.7 150.95 173.35 167.05 166.7 183.15 160.05 199.25 143.95 205.85 127.95 212.55 111.9 205.9 L 71.2 189.05 66.2 201.05 106.9 217.9 Q 127.9 226.65 148.95 217.85 169.95 209.2 178.7 188.15 187.4 167.15 178.7 145.95 170 125.05 149 116.3 L 121.5 104.6 Q 115.1 101.9 112.35 95.45 109.65 88.9 112.35 82.4 115.05 75.95 121.55 73.2 128.1 70.5 134.5 73.2 L 175.2 90.05 Z'/>";
     t[2] = "</g></svg>";
     return t.join("\n");
 }
