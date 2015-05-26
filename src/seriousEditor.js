@@ -140,7 +140,7 @@ Serious.Editor.prototype = {
         Serious.createClass('S-in', 'width:8px; height:8px; position:absolute; left:16px; top:-4px; border:2px solid #0F0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;'+ str);
         Serious.createClass('S-out', 'width:8px; height:8px; position:absolute; left:16px; bottom:-4px; border:2px solid #FF0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;'+ str);
 
-        Serious.createClass('S-sideButton', 'position:absolute; width:30px; height:18px; background:#222; margin-left:-30px; padding-top:3px; border-top-left-radius:4px; border-bottom-left-radius:4px; cursor:pointer; ');
+        Serious.createClass('S-sideButton', 'position:absolute; width:25px; height:18px; background:#222; margin-left:-25px; padding-top:3px; border-top-left-radius:4px; border-bottom-left-radius:4px; cursor:pointer; ');
         Serious.createClass('S-sideButton:hover', 'background:#AAA; color:#000; ');
         Serious.createClass('S-sideButton-select:hover', 'background:#AAA; color:#000; ');
         Serious.createClass('sideselect', ' background:#2A2; color:#fff; ');
@@ -212,7 +212,7 @@ Serious.Editor.prototype = {
             b =  document.createElement('div');
             b.className = 'S-sideButton';
             b.innerHTML = i;
-            b.style.top = -255 + ((i+1)*30) + 'px';
+            b.style.top = -255 + ((i+1)*25) + 'px';
             b.name = i;
             this.menu.appendChild( b );
             b.onclick = function(e){  this.leftMenuSelected(e.target.name);  }.bind(this);
@@ -244,7 +244,6 @@ Serious.Editor.prototype = {
     //------------------------
     // ADD
     //------------------------
-    
 
     add:function(type, obj, layer){
 
@@ -274,10 +273,6 @@ Serious.Editor.prototype = {
                 node = document.createElement('img');
                 node.url = obj.src;
             break;
-            /*case 'scene':
-                prefix = 'source'; 
-                node = document.createElement('img');
-            break;*/
             //--------------------------------- target
             case 'texture-3D':
                 prefix = 'T';
@@ -347,10 +342,7 @@ Serious.Editor.prototype = {
 
     addOnAll:function(type, obj ){
         var i = 8;
-        while(i--){
-        //for(var i=0; i<8; i++){
-            this.add(type, obj, i);
-        }
+        while(i--) this.add(type, obj, i);
     },
 
     remove:function(){
@@ -358,14 +350,6 @@ Serious.Editor.prototype = {
     },
 
     //-----------------------------------------------------------
-
-    changeLayer:function(layer){
-        this.LAYER = layer || 0;
-        //this.nodes = this.TMP[this.LAYER].nodes;
-        //this.links = this.TMP[this.LAYER].links;
-        ///this.positions = this.TMP[this.LAYER].positions;
-        //this.count = this.TMP[this.LAYER].count;
-    },
 
     // DISPLAY 
 
@@ -429,17 +413,14 @@ Serious.Editor.prototype = {
 
     clear:function(){
         this.clearSelector();
-        /*var node, i = this.nodes.length;
-        while(i--){
-            node = this.nodes[i];
-            while(node.firstChild) { node.removeChild(node.firstChild); }
-        }*/
         while(this.gridTop.firstChild) { this.gridTop.removeChild(this.gridTop.firstChild); }
         this.nodesDiv = [];
     },
     
+    //-----------------------------------------------------------
 
     // TOOLS
+
     getPrefix:function(name){
         return name.substring(0, name.lastIndexOf("_"));
     },
@@ -465,6 +446,8 @@ Serious.Editor.prototype = {
         var i = this.tmp[layer].nodes.length;
         while(i--){ if(n == this.tmp[layer].nodes[i].n ) return this.tmp[layer].nodes[i].node; }
     },
+
+    //-----------------------------------------------------------
 
     // SHOW NODE
 
@@ -622,12 +605,9 @@ Serious.Editor.prototype = {
         while(i--) this.removeLink(rem[i]);
     },
 
-    // BASIC MENU
-
-
+    //-----------------------------------------------------------
 
     // SELECTOR
-
 
     selector:function(name){
         this.clearSelector();
@@ -971,6 +951,9 @@ Serious.Editor.prototype = {
         this.sels.push( s );
     },
 
+
+    //-----------------------------------------------------------
+
     // MOUSE
 
     contextmenu:function(e){
@@ -1099,7 +1082,12 @@ Serious.Editor.prototype = {
     }
 }
 
-//__________________________________
+
+
+
+
+
+//-----------------------------------------------------------
 
 
 //--------------------
@@ -1191,7 +1179,13 @@ Serious.Link.prototype = {
     }
 }
 
-//__________________________________
+
+
+
+
+
+//-----------------------------------------------------------
+
 
 //--------------------
 // CSS CLASS
