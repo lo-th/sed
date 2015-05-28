@@ -9,7 +9,7 @@
 var UIsr = { version:0.1 };
 
 UIsr.nset = {
-    width:322 , height:262, w:40, h:40, r:10, 
+    width:300 , height:262, w:40, h:40, r:10, 
     sc1:'rgba(120,30,60,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)',
     sc2:'rgba(120,30,60,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)',
 };
@@ -33,7 +33,7 @@ UIsr.Title = function(target, id, type, prefix ){
     
     this.t2 = document.createElement('div');
     this.t2.className = 'UIsr-text';
-    this.t2.style.cssText ='right:5px; text-align:right; font-size:12px;';
+    this.t2.style.cssText ='right:25px; text-align:right; font-size:12px;';
     
     var idt = id;
     if(id<10) idt = '0'+id;
@@ -245,7 +245,7 @@ UIsr.V2.prototype = {
 // COLOR
 //--------------------
 
-UIsr.Color = function(target, name, callback, value ){
+/*UIsr.Color = function(target, name, callback, value ){
     // type [0, 0, 0, 1]
     this.target = target;
 
@@ -331,7 +331,7 @@ UIsr.Color.prototype = {
         this.content = null;
         this.target = null;
     }
-}
+}*/
 //--------------------
 // BOOL
 //--------------------
@@ -619,7 +619,7 @@ UIsr.Slide = function(target, name, callback, value, min, max, precision, type, 
     this.valueRange = this.max - this.min;
     this.set = set || [10,100,180,10];
     this.callback = callback || function(){}; 
-    this.width = 170;
+    this.width = 140;
     this.height = 16;
     this.w = this.width-8;
     this.value = value || 0;
@@ -640,7 +640,7 @@ UIsr.Slide.prototype = {
 
         this.result = document.createElement( 'div' );
         this.result.className = 'UIsr-text';
-        this.result.style.cssText ='right:10px; text-align:right;';
+        this.result.style.cssText ='right:25px; text-align:right; width:40px;';
 
         this.bg = document.createElement( 'div' );
         this.bg.className = 'UIsr-scroll-bg';
@@ -730,31 +730,34 @@ UIsr.Slide.prototype = {
 // COLOR PICKER
 //--------------------
 
-UIsr.ColorPicker = function(target, options ){
-    options = options || {};
+UIsr.Color = function(target, name, callback, value ){
+
     this.target = target;
-
     this.content = document.createElement( 'div' );
-    this.content.className = 'UIsr-colorPicker';
-
-    this.width = 200;
+    this.content.className = 'UIsr-base';
+    this.width = 170;
     this.wheelWidth = this.width /10;
-    this.callback = options.callback || function(){};
+    this.callback = callback || function(){};
 
-
-    this.value = '#e9cbc6';
+    this.value = this.pack(value);
     this.color = null;
     this.dragging = false;
     this.isShow = false;
-    this.decal = 30;
+    this.decalLeft = 100;
+    this.decal = 22;
     this.radius = (this.width - this.wheelWidth) * 0.5 - 1;
     this.square = Math.floor((this.radius - this.wheelWidth * 0.5) * 0.7) - 1;
     this.mid = Math.floor(this.width * 0.5 );
     this.markerSize = this.wheelWidth * 0.3;
-    
-    this.t1 = document.createElement('div');
+
+    this.t1 = document.createElement( 'div' );
     this.t1.className = 'UIsr-text';
-    this.t1.style.cssText ='position:absolute; width:'+(this.width-10)+'px; height:17px; padding-left:10px; padding-top:3px; font-size:12px; border:1px solid #fff; pointer-events:auto; cursor:pointer;';
+    this.t1.innerHTML = name+':';
+    
+    
+    this.t2 = document.createElement('div');
+    this.t2.className = 'UIsr-text';
+    this.t2.style.cssText ='position:absolute; width:'+(this.width)+'px; left:'+this.decalLeft+'px; height:16px; padding-left:10px; font-size:12px; pointer-events:auto; cursor:pointer; font-family:Monospace; ';
 
     this.c0 = document.createElement('div');
     this.c1 = document.createElement('canvas');
@@ -763,9 +766,9 @@ UIsr.ColorPicker = function(target, options ){
     this.c1.width = this.c1.height = this.width;
     this.c2.width = this.c2.height = this.width;
     
-    this.c0.style.cssText = 'position:absolute; width:'+(this.square * 2 - 1)+'px; ' + 'height:'+(this.square * 2 - 1)+'px; ' + 'left:'+(this.mid - this.square)+'px; '+ 'top:'+((this.mid - this.square)+this.decal)+'px;  display:none;';
-    this.c1.style.cssText = 'position:absolute; top:'+this.decal+'px;  display:none;';
-    this.c2.style.cssText = 'position:absolute; top:'+this.decal+'px;  pointer-events:auto; cursor:pointer; display:none;';
+    this.c0.style.cssText = 'position:absolute; width:'+(this.square * 2 - 1)+'px; ' + 'height:'+(this.square * 2 - 1)+'px; ' + 'left:'+((this.mid - this.square)+this.decalLeft)+'px; '+ 'top:'+((this.mid - this.square)+this.decal)+'px;  display:none;';
+    this.c1.style.cssText = 'position:absolute; left:'+this.decalLeft+'px;  top:'+this.decal+'px;  display:none;';
+    this.c2.style.cssText = 'position:absolute; left:'+this.decalLeft+'px;  top:'+this.decal+'px;  pointer-events:auto; cursor:pointer; display:none;';
 
     this.ctxMask = this.c1.getContext('2d');
     this.ctxOverlay = this.c2.getContext('2d');
@@ -779,34 +782,37 @@ UIsr.ColorPicker = function(target, options ){
     this.content.appendChild(this.c1);
     this.content.appendChild(this.c2);
     this.content.appendChild(this.t1);
+    this.content.appendChild(this.t2);
     this.target.appendChild( this.content );
 
-    this.updateValue(null);
+    this.updateValue(this.value);
     this.updateDisplay();
 
-    this.t1.onclick = function(e){
+    this.t2.onclick = function(e){
         if(!this.isShow)this.show();
         else this.hide();
     }.bind(this);
     //this.init();
 }
-UIsr.ColorPicker.prototype = {
-    constructor: UIsr.ColorPicker,
+UIsr.Color.prototype = {
+    constructor: UIsr.Color,
     updateDisplay:function(){
         this.invert = (this.rgb[0] * 0.3 + this.rgb[1] * .59 + this.rgb[2] * .11) <= 0.6;
         this.c0.style.background = this.pack(this.HSLToRGB([this.hsl[0], 1, 0.5]));
         this.drawMarkers();
         
         this.value = this.color;
-        this.t1.innerHTML = this.value;
-        this.t1.style.background = this.color;
+        this.t2.innerHTML = this.hexFormat(this.value);//this.value;
+        this.t2.style.background = this.color;
         var cc = this.invert ? '#fff' : '#000';
-        this.t1.style.color = cc;
-        this.t1.style.border = '1px solid '+ cc;
+        this.t2.style.color = cc;
+        //this.t2.style.border = '1px solid '+ cc;
+
+        this.callback( this.rgb );
     },
     hide:function(){
         this.isShow = false;
-
+        this.content.style.height = '20px';
         this.c0.style.display = 'none';
         this.c1.style.display = 'none';
         this.c2.style.display = 'none';
@@ -815,7 +821,7 @@ UIsr.ColorPicker.prototype = {
     },
     show:function(){
         this.isShow = true;
-
+        this.content.style.height = '194px';
         this.c0.style.display = 'block';
         this.c1.style.display = 'block';
         this.c2.style.display = 'block';
@@ -825,8 +831,11 @@ UIsr.ColorPicker.prototype = {
     updateValue:function(e){
         if (this.value && this.value != this.color) {
             this.setColor(this.value);
-            this.t1.innerHTML = this.value;
+            this.t2.innerHTML = this.hexFormat(this.value);
         }
+    },
+    hexFormat:function(v){
+        return v.replace("#", "0x");
     },
     setColor:function(color){
         var unpack = this.unpack(color);
@@ -988,19 +997,9 @@ UIsr.ColorPicker.prototype = {
     },
     unpack:function(color){
         if (color.length == 7) {
-            //this.un255(color, i);
-            /*function x(i) {
-                return parseInt(color.substring(i, i + 2), 16) / 255;
-            }*/
-            //return [ x(1), x(3), x(5) ];
-            return [ this.u255(color, 1), this.n255(color, 3), this.u255(color, 5) ];
+            return [ this.u255(color, 1), this.u255(color, 3), this.u255(color, 5) ];
         }
         else if (color.length == 4) {
-            //this.un16(color, i);
-            /*function x(i) {
-                return parseInt(color.substring(i, i + 1), 16) / 15;
-            }*/
-            //return [ x(1), x(2), x(3) ];
             return [ this.u16(color,1), this.u16(color,2), this.u16(color,3) ];
         }
     },
@@ -1044,10 +1043,11 @@ UIsr.ColorPicker.prototype = {
         this.content.removeChild(this.c1);
         this.content.removeChild(this.c2);
         this.content.removeChild(this.t1);
+        this.content.removeChild(this.t2);
         this.target.removeChild( this.content );
-        this.t1.onclick = null;
+        this.t2.onclick = null;
 
-        this.t1 = null;
+        this.t2 = null;
         this.c0 = null;
         this.c1 = null;
         this.c2 = null;
@@ -1078,20 +1078,20 @@ UIsr.createClass = function(name,rules,noAdd){
     if(doRemove) element.className = element.className.replace(new RegExp("\\b"+name+"\\b","g"),"");
     else element.className = element.className+" "+name;
 }*/
-var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; letter-spacing:-0.3px; color:#FFF;';
-UIsr.createClass('UIsr-base', 'width:'+(UIsr.nset.width-4)+'px; height:20px; position:relative; left:0px; pointer-events:none; background:'+UIsr.nset.fc1+'; padding-left:5px; padding-right:5px; margin-bottom:1px;'+str);
-UIsr.createClass('UIsr-title', 'width:'+(UIsr.nset.width-4)+'px; height:30px; position:relative; left:0px; pointer-events:none; padding-left:5px; padding-right:5px; margin-bottom:1px; padding-top:8px;'+str);
+var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; font-family:Helvetica, Arial, sans-serif; font-size:12px; color:#e2e2e2;';
+UIsr.createClass('UIsr-base', 'width:'+(UIsr.nset.width)+'px; height:20px; position:relative; left:0px; pointer-events:none; background:'+UIsr.nset.fc1+'; margin-bottom:1px;'+str);
+UIsr.createClass('UIsr-title', 'width:'+(UIsr.nset.width)+'px; height:30px; position:relative; left:0px; pointer-events:none; padding-top:5px; margin-bottom:1px;'+str);
 
 UIsr.createClass('UIsr-box', 'position:absolute; left:100px; top:3px; width:14px; height:14px; pointer-events:auto; cursor:pointer; border:2px solid rgba(255,255,255,0.4); '+str);
-UIsr.createClass('UIsr-text', 'font-size:12px; position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; text-align:Left;'+str);
-UIsr.createClass('input.UIsr-number', 'font-size:12px; position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; text-align:Left; background:rgba(0,0,0,0.2);'+str, true);
-UIsr.createClass('input.UIsr-url', 'font-size:12px; position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; text-align:Left; background:rgba(0,0,0,0.2);'+str, true);
+UIsr.createClass('UIsr-text', 'position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:10px; padding-left:10px; padding-right:5px; padding-top:2px; text-align:Left;'+str);
+UIsr.createClass('input.UIsr-number', 'position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:5px; padding-top:2px; background:rgba(0,0,0,0.2);'+str, true);
+UIsr.createClass('input.UIsr-url', 'position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; background:rgba(0,0,0,0.2);'+str, true);
 UIsr.createClass('UIsr-textList', 'border:1px solid '+UIsr.nset.fc1+'; background:'+UIsr.nset.fc2+'; left:100px; font-size:12px; position:absolute; cursor:pointer; width:170px; height:16px; pointer-events:auto; margin-top:2px; text-align:center;'+str);
 UIsr.createClass('UIsr-textList:hover', 'border:1px solid #FFF;'+str);
 UIsr.createClass('UIsr-list', 'border:1px solid #FFF; position:absolute; left:100px; top:17px; width:170px; height:80px; background:#000; overflow:hidden; pointer-events:none; '+str);
 UIsr.createClass('UIsr-listInner', 'position:absolute; left:0; top:0; width:170px; background:#060; pointer-events:none;'+str);
 UIsr.createClass('UIsr-listItem', 'position:relative; width:170px; height:15px; background:#020; margin-bottom:1px; pointer-events:auto; cursor:pointer;'+str);
-UIsr.createClass('UIsr-listItem:hover', 'background:#050; color:#FFF;'+str)
+UIsr.createClass('UIsr-listItem:hover', 'background:#050; color:#e2e2e2;'+str)
 UIsr.createClass('UIsr-listScroll', 'position:absolute; right:0px; background:#000; width:20px; height:80px;cursor:pointer;pointer-events:auto;'+str);
 UIsr.createClass('UIsr-listPin', 'position:absolute; right:1px; background:#0F0; width:18px; height:20px; pointer-events:none;'+str);
 

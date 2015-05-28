@@ -16547,7 +16547,7 @@ Modified to preserve alpha
 var UIsr = { version:0.1 };
 
 UIsr.nset = {
-    width:322 , height:262, w:40, h:40, r:10, 
+    width:300 , height:262, w:40, h:40, r:10, 
     sc1:'rgba(120,30,60,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)',
     sc2:'rgba(120,30,60,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)',
 };
@@ -16571,7 +16571,7 @@ UIsr.Title = function(target, id, type, prefix ){
     
     this.t2 = document.createElement('div');
     this.t2.className = 'UIsr-text';
-    this.t2.style.cssText ='right:5px; text-align:right; font-size:12px;';
+    this.t2.style.cssText ='right:25px; text-align:right; font-size:12px;';
     
     var idt = id;
     if(id<10) idt = '0'+id;
@@ -16783,7 +16783,7 @@ UIsr.V2.prototype = {
 // COLOR
 //--------------------
 
-UIsr.Color = function(target, name, callback, value ){
+/*UIsr.Color = function(target, name, callback, value ){
     // type [0, 0, 0, 1]
     this.target = target;
 
@@ -16869,7 +16869,7 @@ UIsr.Color.prototype = {
         this.content = null;
         this.target = null;
     }
-}
+}*/
 //--------------------
 // BOOL
 //--------------------
@@ -17157,7 +17157,7 @@ UIsr.Slide = function(target, name, callback, value, min, max, precision, type, 
     this.valueRange = this.max - this.min;
     this.set = set || [10,100,180,10];
     this.callback = callback || function(){}; 
-    this.width = 170;
+    this.width = 140;
     this.height = 16;
     this.w = this.width-8;
     this.value = value || 0;
@@ -17178,7 +17178,7 @@ UIsr.Slide.prototype = {
 
         this.result = document.createElement( 'div' );
         this.result.className = 'UIsr-text';
-        this.result.style.cssText ='right:10px; text-align:right;';
+        this.result.style.cssText ='right:25px; text-align:right; width:40px;';
 
         this.bg = document.createElement( 'div' );
         this.bg.className = 'UIsr-scroll-bg';
@@ -17268,31 +17268,34 @@ UIsr.Slide.prototype = {
 // COLOR PICKER
 //--------------------
 
-UIsr.ColorPicker = function(target, options ){
-    options = options || {};
+UIsr.Color = function(target, name, callback, value ){
+
     this.target = target;
-
     this.content = document.createElement( 'div' );
-    this.content.className = 'UIsr-colorPicker';
-
-    this.width = 200;
+    this.content.className = 'UIsr-base';
+    this.width = 170;
     this.wheelWidth = this.width /10;
-    this.callback = options.callback || function(){};
+    this.callback = callback || function(){};
 
-
-    this.value = '#e9cbc6';
+    this.value = this.pack(value);
     this.color = null;
     this.dragging = false;
     this.isShow = false;
-    this.decal = 30;
+    this.decalLeft = 100;
+    this.decal = 22;
     this.radius = (this.width - this.wheelWidth) * 0.5 - 1;
     this.square = Math.floor((this.radius - this.wheelWidth * 0.5) * 0.7) - 1;
     this.mid = Math.floor(this.width * 0.5 );
     this.markerSize = this.wheelWidth * 0.3;
-    
-    this.t1 = document.createElement('div');
+
+    this.t1 = document.createElement( 'div' );
     this.t1.className = 'UIsr-text';
-    this.t1.style.cssText ='position:absolute; width:'+(this.width-10)+'px; height:17px; padding-left:10px; padding-top:3px; font-size:12px; border:1px solid #fff; pointer-events:auto; cursor:pointer;';
+    this.t1.innerHTML = name+':';
+    
+    
+    this.t2 = document.createElement('div');
+    this.t2.className = 'UIsr-text';
+    this.t2.style.cssText ='position:absolute; width:'+(this.width)+'px; left:'+this.decalLeft+'px; height:16px; padding-left:10px; font-size:12px; pointer-events:auto; cursor:pointer; font-family:Monospace; ';
 
     this.c0 = document.createElement('div');
     this.c1 = document.createElement('canvas');
@@ -17301,9 +17304,9 @@ UIsr.ColorPicker = function(target, options ){
     this.c1.width = this.c1.height = this.width;
     this.c2.width = this.c2.height = this.width;
     
-    this.c0.style.cssText = 'position:absolute; width:'+(this.square * 2 - 1)+'px; ' + 'height:'+(this.square * 2 - 1)+'px; ' + 'left:'+(this.mid - this.square)+'px; '+ 'top:'+((this.mid - this.square)+this.decal)+'px;  display:none;';
-    this.c1.style.cssText = 'position:absolute; top:'+this.decal+'px;  display:none;';
-    this.c2.style.cssText = 'position:absolute; top:'+this.decal+'px;  pointer-events:auto; cursor:pointer; display:none;';
+    this.c0.style.cssText = 'position:absolute; width:'+(this.square * 2 - 1)+'px; ' + 'height:'+(this.square * 2 - 1)+'px; ' + 'left:'+((this.mid - this.square)+this.decalLeft)+'px; '+ 'top:'+((this.mid - this.square)+this.decal)+'px;  display:none;';
+    this.c1.style.cssText = 'position:absolute; left:'+this.decalLeft+'px;  top:'+this.decal+'px;  display:none;';
+    this.c2.style.cssText = 'position:absolute; left:'+this.decalLeft+'px;  top:'+this.decal+'px;  pointer-events:auto; cursor:pointer; display:none;';
 
     this.ctxMask = this.c1.getContext('2d');
     this.ctxOverlay = this.c2.getContext('2d');
@@ -17317,34 +17320,37 @@ UIsr.ColorPicker = function(target, options ){
     this.content.appendChild(this.c1);
     this.content.appendChild(this.c2);
     this.content.appendChild(this.t1);
+    this.content.appendChild(this.t2);
     this.target.appendChild( this.content );
 
-    this.updateValue(null);
+    this.updateValue(this.value);
     this.updateDisplay();
 
-    this.t1.onclick = function(e){
+    this.t2.onclick = function(e){
         if(!this.isShow)this.show();
         else this.hide();
     }.bind(this);
     //this.init();
 }
-UIsr.ColorPicker.prototype = {
-    constructor: UIsr.ColorPicker,
+UIsr.Color.prototype = {
+    constructor: UIsr.Color,
     updateDisplay:function(){
         this.invert = (this.rgb[0] * 0.3 + this.rgb[1] * .59 + this.rgb[2] * .11) <= 0.6;
         this.c0.style.background = this.pack(this.HSLToRGB([this.hsl[0], 1, 0.5]));
         this.drawMarkers();
         
         this.value = this.color;
-        this.t1.innerHTML = this.value;
-        this.t1.style.background = this.color;
+        this.t2.innerHTML = this.hexFormat(this.value);//this.value;
+        this.t2.style.background = this.color;
         var cc = this.invert ? '#fff' : '#000';
-        this.t1.style.color = cc;
-        this.t1.style.border = '1px solid '+ cc;
+        this.t2.style.color = cc;
+        //this.t2.style.border = '1px solid '+ cc;
+
+        this.callback( this.rgb );
     },
     hide:function(){
         this.isShow = false;
-
+        this.content.style.height = '20px';
         this.c0.style.display = 'none';
         this.c1.style.display = 'none';
         this.c2.style.display = 'none';
@@ -17353,7 +17359,7 @@ UIsr.ColorPicker.prototype = {
     },
     show:function(){
         this.isShow = true;
-
+        this.content.style.height = '194px';
         this.c0.style.display = 'block';
         this.c1.style.display = 'block';
         this.c2.style.display = 'block';
@@ -17363,8 +17369,11 @@ UIsr.ColorPicker.prototype = {
     updateValue:function(e){
         if (this.value && this.value != this.color) {
             this.setColor(this.value);
-            this.t1.innerHTML = this.value;
+            this.t2.innerHTML = this.hexFormat(this.value);
         }
+    },
+    hexFormat:function(v){
+        return v.replace("#", "0x");
     },
     setColor:function(color){
         var unpack = this.unpack(color);
@@ -17526,19 +17535,9 @@ UIsr.ColorPicker.prototype = {
     },
     unpack:function(color){
         if (color.length == 7) {
-            //this.un255(color, i);
-            /*function x(i) {
-                return parseInt(color.substring(i, i + 2), 16) / 255;
-            }*/
-            //return [ x(1), x(3), x(5) ];
-            return [ this.u255(color, 1), this.n255(color, 3), this.u255(color, 5) ];
+            return [ this.u255(color, 1), this.u255(color, 3), this.u255(color, 5) ];
         }
         else if (color.length == 4) {
-            //this.un16(color, i);
-            /*function x(i) {
-                return parseInt(color.substring(i, i + 1), 16) / 15;
-            }*/
-            //return [ x(1), x(2), x(3) ];
             return [ this.u16(color,1), this.u16(color,2), this.u16(color,3) ];
         }
     },
@@ -17582,10 +17581,11 @@ UIsr.ColorPicker.prototype = {
         this.content.removeChild(this.c1);
         this.content.removeChild(this.c2);
         this.content.removeChild(this.t1);
+        this.content.removeChild(this.t2);
         this.target.removeChild( this.content );
-        this.t1.onclick = null;
+        this.t2.onclick = null;
 
-        this.t1 = null;
+        this.t2 = null;
         this.c0 = null;
         this.c1 = null;
         this.c2 = null;
@@ -17616,20 +17616,20 @@ UIsr.createClass = function(name,rules,noAdd){
     if(doRemove) element.className = element.className.replace(new RegExp("\\b"+name+"\\b","g"),"");
     else element.className = element.className+" "+name;
 }*/
-var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; letter-spacing:-0.3px; color:#FFF;';
-UIsr.createClass('UIsr-base', 'width:'+(UIsr.nset.width-4)+'px; height:20px; position:relative; left:0px; pointer-events:none; background:'+UIsr.nset.fc1+'; padding-left:5px; padding-right:5px; margin-bottom:1px;'+str);
-UIsr.createClass('UIsr-title', 'width:'+(UIsr.nset.width-4)+'px; height:30px; position:relative; left:0px; pointer-events:none; padding-left:5px; padding-right:5px; margin-bottom:1px; padding-top:8px;'+str);
+var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; font-family:Helvetica, Arial, sans-serif; font-size:12px; color:#e2e2e2;';
+UIsr.createClass('UIsr-base', 'width:'+(UIsr.nset.width)+'px; height:20px; position:relative; left:0px; pointer-events:none; background:'+UIsr.nset.fc1+'; margin-bottom:1px;'+str);
+UIsr.createClass('UIsr-title', 'width:'+(UIsr.nset.width)+'px; height:30px; position:relative; left:0px; pointer-events:none; padding-top:5px; margin-bottom:1px;'+str);
 
 UIsr.createClass('UIsr-box', 'position:absolute; left:100px; top:3px; width:14px; height:14px; pointer-events:auto; cursor:pointer; border:2px solid rgba(255,255,255,0.4); '+str);
-UIsr.createClass('UIsr-text', 'font-size:12px; position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; text-align:Left;'+str);
-UIsr.createClass('input.UIsr-number', 'font-size:12px; position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; text-align:Left; background:rgba(0,0,0,0.2);'+str, true);
-UIsr.createClass('input.UIsr-url', 'font-size:12px; position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; text-align:Left; background:rgba(0,0,0,0.2);'+str, true);
+UIsr.createClass('UIsr-text', 'position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:10px; padding-left:10px; padding-right:5px; padding-top:2px; text-align:Left;'+str);
+UIsr.createClass('input.UIsr-number', 'position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:5px; padding-top:2px; background:rgba(0,0,0,0.2);'+str, true);
+UIsr.createClass('input.UIsr-url', 'position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; background:rgba(0,0,0,0.2);'+str, true);
 UIsr.createClass('UIsr-textList', 'border:1px solid '+UIsr.nset.fc1+'; background:'+UIsr.nset.fc2+'; left:100px; font-size:12px; position:absolute; cursor:pointer; width:170px; height:16px; pointer-events:auto; margin-top:2px; text-align:center;'+str);
 UIsr.createClass('UIsr-textList:hover', 'border:1px solid #FFF;'+str);
 UIsr.createClass('UIsr-list', 'border:1px solid #FFF; position:absolute; left:100px; top:17px; width:170px; height:80px; background:#000; overflow:hidden; pointer-events:none; '+str);
 UIsr.createClass('UIsr-listInner', 'position:absolute; left:0; top:0; width:170px; background:#060; pointer-events:none;'+str);
 UIsr.createClass('UIsr-listItem', 'position:relative; width:170px; height:15px; background:#020; margin-bottom:1px; pointer-events:auto; cursor:pointer;'+str);
-UIsr.createClass('UIsr-listItem:hover', 'background:#050; color:#FFF;'+str)
+UIsr.createClass('UIsr-listItem:hover', 'background:#050; color:#e2e2e2;'+str)
 UIsr.createClass('UIsr-listScroll', 'position:absolute; right:0px; background:#000; width:20px; height:80px;cursor:pointer;pointer-events:auto;'+str);
 UIsr.createClass('UIsr-listPin', 'position:absolute; right:1px; background:#0F0; width:18px; height:20px; pointer-events:none;'+str);
 
@@ -17690,19 +17690,20 @@ Serious.Editor = function(autorun, canvas ){
         console.log("auto")
     }
 
-
+    this.maxLayer = 9;
     this.LAYER = 0;
 
     this.tmp = [];
 
-    this.xDecale = 60;
+    this.xDecale = 50;
     this.xprevdecale = [];
 
     this.isFirst = true;
 
     this.visible = true;
 
-    this.size = {x:322, y:272};
+    this.size = {x:300, y:250};
+    this.gridsize = {x:1000, y:1000};
 
     this.linkTest = {source:-1, target:-1, sourceN:0, targetN:0};
 
@@ -17723,7 +17724,7 @@ Serious.Editor = function(autorun, canvas ){
     this.current = 'close';
     this.move = {name:'', element:null, down:false, test:false,  x:0,y:0, tx:0, ty:0, mx:0, my:0};
     this.nset = { 
-        w:40, h:40, r:10, 
+        w:40, h:40, r:6, 
         sc1:'rgba(120,30,60,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)',
         sc2:'rgba(120,30,60,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)',
     };
@@ -17750,17 +17751,18 @@ Serious.Editor.prototype = {
         this.seriously.render();
     },
     init:function(){
-        var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;';
-        //var str = 'padding:0; margin:0; border: 0; -o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select:none; box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;';
-        //Serious.createClass('*', 'padding:0; margin:0; border: 0; -o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select:none; box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;');
-        Serious.createClass('basic', 'font-family:Monospace; font-size:12px; font-smooth:never; -webkit-font-smoothing:none; overflow:hidden; background:#222; color:#e2e2e2;' + str );
-        Serious.createClass('editor', 'width:42px; height:42px; position:absolute; right:10px; top:10px; border:2px solid #000; border-radius:6px; cursor:move;' + str );
+        var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; font-family:Helvetica, Arial, sans-serif; font-size:12px; color:#e2e2e2;';
+        Serious.createClass('editor', 'width:40px; height:40px; position:absolute; right:10px; top:20px; border:5px solid #282828; cursor:move; overflow:hidden; background:#1a1a1a;' + str );
+        Serious.createClass('editor:hover', 'box-shadow:inset 0 0 0 1px #000');
 
-        Serious.createClass('def.basic.editor:hover', 'border:2px solid #1a1a1a;'+ str);
-        Serious.createClass('S-grid','position:absolute; left:0px; top:0px; pointer-events:none; width:1000px; height:1000px;'+ str);
-        Serious.createClass('S-icc', 'position:absolute; left:0px; top:1px; text-align:center; width:40px; height:40px; pointer-events:none;'+ str);
+        Serious.createClass('S-icc', 'position:absolute; left:-5px; top:-4px; text-align:center; width:40px; height:40px; pointer-events:none;'+ str);
+
+        Serious.createClass('S-grid','position:absolute; left:0px; top:0px; pointer-events:none; width:'+this.gridsize.x+'px; height:'+this.gridsize.y+'px;'+ str);
         Serious.createClass('S-grid-plus', 'position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
-        Serious.createClass('S-menu', 'width:42px; height:auto; position:absolute; right:10px; top:10px; pointer-events:auto; text-align:center; background:#222; border:2px solid #333; border-radius:6px; display:none; color:#e2e2e2;'+ str)
+
+        Serious.createClass('S-menu', 'width:300px; height:20px; position:absolute; right:0px; top:0px; pointer-events:auto; background:#282828; display:none; '+ str);
+        Serious.createClass('S-bmenu', 'width:300px; height:calc(100% - 270px); position:absolute; right:0px; top:270px; pointer-events:none; background:none; display:none; overflow:auto; overflow-x:hidden;'+ str)
+
         // node
         Serious.createClass('S-S', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.sc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
         Serious.createClass('S-E', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.fc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
@@ -17772,33 +17774,36 @@ Serious.Editor.prototype = {
         // node icon
         Serious.createClass('S-icon', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
         // selected
-        Serious.createClass('S-select', 'margin-left:-2px; margin-top:-2px; width:'+(this.nset.w+4)+'px; height:'+(this.nset.h+4)+'px; position:absolute; border:4px solid #FFF; border-radius:'+(this.nset.r+2)+'px; pointer-events:none; display:none; pointer-events:none;'+ str);
+        Serious.createClass('S-select', 'margin-left:-1px; margin-top:-1px; width:'+(this.nset.w+2)+'px; height:'+(this.nset.h+2)+'px; position:absolute; border:2px solid #FFF; border-radius:'+(this.nset.r+1)+'px; display:none; pointer-events:none;'+ str);
         // link
         Serious.createClass('S-in', 'width:8px; height:8px; position:absolute; left:16px; top:-4px; border:2px solid #0F0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;'+ str);
         Serious.createClass('S-out', 'width:8px; height:8px; position:absolute; left:16px; bottom:-4px; border:2px solid #FF0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;'+ str);
 
-        Serious.createClass('S-closeButton', 'position:absolute; width:20px; height:20px; left:0px; top:0px; font-size:14px; background:#none; padding-top:2px; border-radius:6px; pointer-events:auto; cursor:pointer;text-align:center; display:none;');
+        Serious.createClass('S-closeButton', 'position:absolute; left:0px; top:0px; width:25px; height:20px; font-size:14px; padding-top:5px; background:#none; pointer-events:auto; cursor:pointer; text-align:center;');
         Serious.createClass('S-closeButton:hover', 'background:#422; color:#F00;');
 
-        Serious.createClass('S-sideButton', 'position:absolute; width:25px; height:18px; background:#222; margin-left:-25px; padding-top:3px; border-top-left-radius:4px; border-bottom-left-radius:4px; cursor:pointer; ');
-        Serious.createClass('S-sideButton:hover', 'background:#AAA; color:#000; ');
-        Serious.createClass('S-sideButton-select:hover', 'background:#AAA; color:#000; ');
-        Serious.createClass('sideselect', ' background:#000; color:#2A2; ');
+        Serious.createClass('S-sideButton', 'position:absolute; width:29px; height:20px; padding-top:5px; background:#282828; pointer-events:auto; cursor:pointer; font-size:14px; text-align:center; border-left:1px solid #333; color:#e2e2e2;');
+        Serious.createClass('S-sideButton:hover', 'background:#404040;');
+        Serious.createClass('S-sideButton-select:hover', 'background:#404040;');
+        Serious.createClass('sideselect', ' background:#1a1a1a; color:#2A2; height:22px; border-right:1px solid #000;');
+
+        this.content = document.createElement('div');
+        this.content.name = 'root';
+        this.content.className = 'editor';
 
         this.menu = document.createElement('div');
         this.menu.className = 'S-menu';
-        
-        this.content = document.createElement('div');
-        this.content.name = 'root';
-        this.content.className = 'def basic editor';
+
+        this.bmenu = document.createElement('div');
+        this.bmenu.className = 'S-bmenu';
 
         this.grid = document.createElement('div');
         this.grid.className = 'S-grid';
         
 
         this.gridBottom = document.createElement('canvas');
-        this.gridBottom.width = 2000;
-        this.gridBottom.height = 2000;
+        this.gridBottom.width = this.gridsize.x;
+        this.gridBottom.height = this.gridsize.y;
         this.gridBottom.className = 'S-gris-plus';
         this.gridBottom.style.display = 'none';
         this.linkcontext = this.gridBottom.getContext('2d');
@@ -17813,20 +17818,16 @@ Serious.Editor.prototype = {
         this.icc.className = 'S-icc';
         this.icc.innerHTML = Serious.Logo(36, '#e2e2e2');
 
-        this.initLeftMenu();
+        this.initMenu();
 
-        this.bclose =  document.createElement('div');
-        this.bclose.className = 'S-closeButton';
-        this.bclose.style.display = 'none;';
-        this.bclose.innerHTML = 'X';
-        this.bclose.name = 'close';
-
-        document.body.appendChild( this.menu );
         document.body.appendChild( this.content );
+        document.body.appendChild( this.menu );
+        document.body.appendChild( this.bmenu );
+        
 
         this.content.appendChild( this.icc );
         this.content.appendChild( this.grid );
-        this.content.appendChild( this.bclose );
+        //this.content.appendChild( this.bclose );
         this.grid.appendChild( this.gridBottom );
         this.grid.appendChild( this.select );
         this.grid.appendChild( this.gridTop );
@@ -17842,37 +17843,107 @@ Serious.Editor.prototype = {
         this.content.addEventListener('DOMMouseScroll', function(e){ this.onmousewheel(e)}.bind( this ), false );
     },
 
-    initLeftMenu:function(){
+    initMenu:function(){
+        this.bclose =  document.createElement('div');
+        this.bclose.className = 'S-closeButton';
+        this.bclose.innerHTML = 'X';
+        this.bclose.onclick = function(e){ this.close(); }.bind(this);
+
+        this.menu.appendChild( this.bclose );
+
         this.optionButton = [];
         var b;
-        for(var i=0; i<8; i++){
+        for(var i=0; i<this.maxLayer; i++){
             b =  document.createElement('div');
             b.className = 'S-sideButton';
             b.innerHTML = i;
-            b.style.top = -255 + ((i+1)*25) + 'px';
+            b.style.left = 25+(i*30)+ 'px';
             b.name = i;
             this.menu.appendChild( b );
-            b.onclick = function(e){  this.leftMenuSelected(e.target.name);  }.bind(this);
+            b.onclick = function(e){  this.menuSelect(e.target.name);  }.bind(this);
             this.optionButton.push(b);
 
             // prepa variables
-            this.xprevdecale.push( [-40,-40,-40] );
+            this.xprevdecale.push( [-30,-30,-30] );
             this.tmp.push( { nodes:[], links:[] } );
         }
 
-        this.leftMenuSelected(0);
+        this.menuSelect(0);
     },
 
-    leftMenuSelected:function(n, only){
+    menuSelect:function(n, only){
         var i = this.optionButton.length;
         while(i--){
-            if(n == i){
-                this.optionButton[i].className = 'S-sideButton sideselect';
-            }else{
-                this.optionButton[i].className = 'S-sideButton';
-            }
+            if(n == i) this.optionButton[i].className = 'S-sideButton sideselect';
+            else this.optionButton[i].className = 'S-sideButton';
         }
         if(!only)this.refresh(n);
+    },
+
+
+    // OPEN
+
+    open:function(){
+        this.current= 'open'
+        this.content.style.width = this.size.x + 'px';
+        this.content.style.height = this.size.y + 'px';
+        this.content.style.right = '0px';
+        this.content.style.top = '20px';
+
+        this.icc.innerHTML = Serious.Logo(256, '#111');
+        this.icc.style.top = '-7px';
+        this.icc.style.left = '20px';
+
+        this.grid.style.background = 'url(' + (function() {
+            var canvas = document.createElement('canvas');
+            canvas.width = 10;
+            canvas.height = 10;
+            var context = canvas.getContext('2d');
+            context.fillStyle = 'rgba(0,0,0,0.2)';
+            context.fillRect(9, 0, 1, 10);
+            context.fillRect(0, 9, 10, 1);
+            context.fillStyle = 'rgba(60,60,60,0.2)';
+            context.fillRect(0, 0, 1, 9);
+            context.fillRect(0, 0, 9, 1);
+            return canvas.toDataURL();
+        }()) + ')';
+
+        this.menu.style.display = 'block';
+        this.bmenu.style.display = 'block';
+        this.gridBottom.style.display = 'block';
+
+        if(this.isFirst)this.refresh(0, true);
+        else this.refresh(this.LAYER);
+    },
+
+    // CLOSE
+
+    close:function(){
+        this.current= 'close';
+        this.content.style.width = '40px';
+        this.content.style.height = '40px'
+        this.content.style.right = '10px';
+        this.content.style.top = '20px';
+
+        this.grid.style.background = 'none';
+
+        this.icc.innerHTML = Serious.Logo(36, '#e2e2e2');
+        this.icc.style.top = '-4px';
+        this.icc.style.left = '-5px';
+
+        this.menu.style.display = 'none';
+        this.bmenu.style.display = 'none';
+        this.gridBottom.style.display = 'none';
+        this.clear();
+        this.isFirst = false;
+    },
+
+    // CLEAR
+
+    clear:function(){
+        this.clearSelector();
+        while(this.gridTop.firstChild) { this.gridTop.removeChild(this.gridTop.firstChild); }
+        this.nodesDiv = [];
     },
 
 
@@ -17977,7 +18048,7 @@ Serious.Editor.prototype = {
     },
 
     addOnAll:function(type, obj ){
-        var i = 8;
+        var i = this.maxLayer;
         while(i--) this.add(type, obj, i);
     },
 
@@ -17994,7 +18065,7 @@ Serious.Editor.prototype = {
         if(layer!==this.LAYER){
             this.LAYER = layer;
             this.applyLinks();
-            this.leftMenuSelected(layer,true);
+            this.menuSelect(layer,true);
         }
         this.isFirst = false;
     },
@@ -18014,70 +18085,6 @@ Serious.Editor.prototype = {
         this.applyLinks();
     },
 
-    // OPEN
-
-    open:function(){
-        this.current= 'open'
-        this.content.style.width = this.size.x + 'px';
-        this.content.style.height = this.size.y + 'px';
-
-        this.bclose.style.display = 'block';
-
-        this.icc.innerHTML = Serious.Logo(256, 'rgba(0,0,0,0.3)');
-        this.icc.style.top = '8px';
-        this.icc.style.left = '30px';
-
-        this.grid.style.background = 'url(' + (function() {
-            var canvas = document.createElement('canvas');
-            canvas.width = 20;
-            canvas.height = 20;
-            var context = canvas.getContext('2d');
-            context.fillStyle = 'rgba(0,0,0,0.3)';
-            context.fillRect(19, 0, 1, 20);
-            context.fillRect(0, 19, 20, 1);
-            context.fillStyle = 'rgba(60,60,60,0.4)';
-            context.fillRect(0, 0, 1, 19);
-            context.fillRect(0, 0, 19, 1);
-            return canvas.toDataURL();
-        }()) + ')';
-
-        this.menu.style.width = this.size.x + 'px';
-        this.menu.style.top = this.size.y + 'px';
-        this.menu.style.height = 30 + 'px';
-        this.menu.style.display = 'block';
-        this.gridBottom.style.display = 'block';
-
-        if(this.isFirst)this.refresh(0, true);
-        else this.refresh(this.LAYER);
-    },
-
-    // CLOSE
-
-    close:function(){
-        this.current= 'close';
-        this.content.style.width = '42px';
-        this.content.style.height = '42px'
-        this.bclose.style.display = 'none';
-
-        this.grid.style.background = 'none';
-
-        this.icc.innerHTML = Serious.Logo(36, '#e2e2e2');
-        this.icc.style.top = '1px';
-        this.icc.style.left = '0px';
-
-        this.menu.style.display = 'none';
-        this.gridBottom.style.display = 'none';
-        this.clear();
-        this.isFirst = false;
-    },
-
-    // CLEAR
-
-    clear:function(){
-        this.clearSelector();
-        while(this.gridTop.firstChild) { this.gridTop.removeChild(this.gridTop.firstChild); }
-        this.nodesDiv = [];
-    },
     
     //-----------------------------------------------------------
 
@@ -18276,7 +18283,7 @@ Serious.Editor.prototype = {
         if(name=='root'){
             this.selectID = -1;
             this.select.style.display = 'none';
-            this.menu.style.height = 'auto';//50 + 'px';
+            //this.menu.style.height = 'auto';//50 + 'px';
 
             this.showRootMenu();
 
@@ -18286,7 +18293,7 @@ Serious.Editor.prototype = {
             this.select.style.left = this.tmp[this.LAYER].nodes[id].x + 'px';
             this.select.style.top = this.tmp[this.LAYER].nodes[id].y + 'px';
             this.selectID = id;
-            this.menu.style.height = 'auto';
+            //this.menu.style.height = 'auto';
 
             this.showSelector(name);
         }
@@ -18561,7 +18568,7 @@ Serious.Editor.prototype = {
     // FROM UIsr
     addOption:function(id, name, list){
         var callback = function(v){  }.bind(this);
-        this.sels.push( new UIsr.List(this.menu, name, callback, name, list) );
+        this.sels.push( new UIsr.List(this.bmenu, name, callback, name, list) );
     },
 
     addImage:function(id, name){
@@ -18569,7 +18576,7 @@ Serious.Editor.prototype = {
     },
 
     addTitle:function(id, type, prefix){
-        var s = new UIsr.Title(this.menu, id, type, prefix);
+        var s = new UIsr.Title(this.bmenu, id, type, prefix);
         switch(prefix){
             case 'S': s.content.style.background = this.nset.sc2; break;
             case 'E': s.content.style.background = this.nset.fc2; break;
@@ -18583,32 +18590,32 @@ Serious.Editor.prototype = {
     },
     addNumber:function(id, name, min, step){
         var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        this.sels.push(new UIsr.Number(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]));
+        this.sels.push(new UIsr.Number(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]));
     },
     addV2:function(id, name, min){
         var callback = function(ar){ this.tmp[this.LAYER].nodes[id].node[name]=ar;}.bind(this);
-        this.sels.push( new UIsr.V2(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node[name][0], this.tmp[this.LAYER].nodes[id].node[name][1]) );
+        this.sels.push( new UIsr.V2(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name][0], this.tmp[this.LAYER].nodes[id].node[name][1]) );
     },
     addColor:function(id, name){
         var callback = function(ar){ this.tmp[this.LAYER].nodes[id].node[name] = ar; }.bind(this);
-        this.sels.push( new UIsr.Color(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]) );
+        this.sels.push( new UIsr.Color(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]) );
     },
     addBool:function(id, name){
         var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        this.sels.push( new UIsr.Bool(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]) );
+        this.sels.push( new UIsr.Bool(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]) );
     },  
     addList:function(id, name, list){
         var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        this.sels.push( new UIsr.List(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node[name], list) );
+        this.sels.push( new UIsr.List(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name], list) );
     },
     addSlide:function(id, name, min, max, precision){
         var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        this.sels.push( new UIsr.Slide(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node[name], min, max, precision));
+        this.sels.push( new UIsr.Slide(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name], min, max, precision));
     },
     addURL:function(id){
         var name = 'src';
         var callback = function(v){ console.log(v); this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        var s = new UIsr.Url(this.menu, name, callback, this.tmp[this.LAYER].nodes[id].node.url);
+        var s = new UIsr.Url(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node.url);
         s.content.style.background = this.nset.sc1;
         this.sels.push( s );
     },
@@ -18646,7 +18653,7 @@ Serious.Editor.prototype = {
     mousedown:function(e){
         var el = e.target;
         var name = el.name;
-         if(name == 'close'){ this.close(); return;}
+         
         //e = e || window.event;
         var l = this.linkTest;
         var n = name.substring(0, 1);
@@ -18688,8 +18695,6 @@ Serious.Editor.prototype = {
     mousemove:function(e){
         //e = e || window.event;
         var name = e.target.name;
-        if(name == 'close') return;
-
        
         var x = e.pageX;//clientX;
         var y = e.pageY;//clientY;
@@ -18718,13 +18723,16 @@ Serious.Editor.prototype = {
             this.move.my=this.move.ty+y-this.move.y;
 
             if(name=='root'){
-                if(this.move.mx>0 )this.move.mx=0;
-                if(this.move.my>0 )this.move.my=0;
-                if(this.move.mx<-(2000+this.size.x) )this.move.mx=-(2000+this.size.x);
-                if(this.move.my<-(2000+this.size.y) )this.move.my=-(2000+this.size.y);
+                if(this.move.mx>0) this.move.mx=0;
+                if(this.move.my>0) this.move.my=0;
+                if(this.move.mx<-(this.gridsize.x-this.size.x)) this.move.mx=-(this.gridsize.x-this.size.x);
+                if(this.move.my<-(this.gridsize.y-this.size.y)) this.move.my=-(this.gridsize.y-this.size.y);
             }else{
-                this.move.mx = (this.move.mx * 0.05).toFixed(0) * 20;
-                this.move.my = (this.move.my * 0.05).toFixed(0) * 20;
+                //this.move.mx = (this.move.mx * 0.05).toFixed(0) * 20;
+                //this.move.my = (this.move.my * 0.05).toFixed(0) * 20;
+
+                this.move.mx = (this.move.mx * 0.1).toFixed(0) * 10;
+                this.move.my = (this.move.my * 0.1).toFixed(0) * 10;
 
                 this.tmp[this.LAYER].nodes[id].x = this.move.mx;
                 this.tmp[this.LAYER].nodes[id].y = this.move.my;
