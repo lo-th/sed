@@ -6,12 +6,12 @@
 */
 
 'use strict';
-var UIsr = { version:0.1 };
+var UIsr = { version:0.2 };
 
 UIsr.nset = {
     width:300 , height:262, w:40, h:40, r:10, 
-    sc1:'rgba(120,30,60,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)',
-    sc2:'rgba(120,30,60,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)',
+    sc1:'rgba(120,30,60,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)', nc1:'rgba(40,40,40,0.5)',
+    sc2:'rgba(120,30,60,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)', nc2:'rgba(40,40,40,0.8)',
 };
 
 UIsr.DocClick = false;
@@ -173,6 +173,7 @@ UIsr.Number.prototype = {
         this.target = null;
     }
 }
+
 //--------------------
 // VECTOR2
 //--------------------
@@ -241,97 +242,7 @@ UIsr.V2.prototype = {
         this.target = null;
     }
 }
-//--------------------
-// COLOR
-//--------------------
 
-/*UIsr.Color = function(target, name, callback, value ){
-    // type [0, 0, 0, 1]
-    this.target = target;
-
-    this.mouseDown = false;
-    this.callback = callback || function(){};
-    this.content = document.createElement( 'div' );
-    this.content.className = 'UIsr-base';
-    target.appendChild( this.content );
-
-    this.t1 = document.createElement( 'div' );
-    this.t1.className = 'UIsr-text';
-    this.t1.innerHTML = name+':';
-    this.content.appendChild( this.t1 );
-
-    this.t2 = document.createElement('input');
-    this.t2.className = 'UIsr-number';
-    this.t2.style.cssText ='width:40px; left:100px; pointer-events:auto; border:none;';
-    this.t2.value = (value[0]*255).toFixed(0);
-    this.content.appendChild(this.t2);
-
-    this.t3 = document.createElement('input');
-    this.t3.className = 'UIsr-number';
-    this.t3.style.cssText ='width:40px; left:145px; pointer-events:auto; border:none;';
-    this.t3.value = (value[1]*255).toFixed(0);
-    this.content.appendChild(this.t3);
-
-    this.t4 = document.createElement('input');
-    this.t4.className = 'UIsr-number';
-    this.t4.style.cssText ='width:40px; left:190px; pointer-events:auto; border:none;';
-    this.t4.value = (value[2]*255).toFixed(0);
-    this.content.appendChild(this.t4);
-
-    this.t5 = document.createElement('input');
-    this.t5.className = 'UIsr-number';
-    this.t5.style.cssText ='width:40px; left:235px; pointer-events:auto; border:none;';
-    this.t5.value = (value[3]*255).toFixed(0);
-    this.content.appendChild(this.t5);
-
-    this.fun =  function(e){
-        e.stopPropagation();
-        this.callback( [this.t2.value/255, this.t3.value/255, this.t4.value/255, this.t5.value/255] );
-        if ( e.keyCode === 13 ) e.target.blur();
-    }.bind(this);
-    this.change =  function(e){
-        this.callback( [this.t2.value/255, this.t3.value/255, this.t4.value/255, this.t5.value/255] );
-    }.bind(this);
-
-    this.t2.addEventListener("keydown", this.fun, false);
-    this.t3.addEventListener("keydown", this.fun, false);
-    this.t4.addEventListener("keydown", this.fun, false);
-    this.t5.addEventListener("keydown", this.fun, false);
-    this.t2.addEventListener( 'change', this.change, false );
-    this.t3.addEventListener( 'change', this.change, false );
-    this.t4.addEventListener( 'change', this.change, false );
-    this.t5.addEventListener( 'change', this.change, false );
-}
-UIsr.Color.prototype = {
-    constructor: UIsr.Color,
-    clear:function(){
-        this.t2.removeEventListener("keydown", this.fun, false);
-        this.t3.removeEventListener("keydown", this.fun, false);
-        this.t4.removeEventListener("keydown", this.fun, false);
-        this.t5.removeEventListener("keydown", this.fun, false);
-        this.t2.removeEventListener( 'change', this.change, false );
-        this.t3.removeEventListener( 'change', this.change, false );
-        this.t4.removeEventListener( 'change', this.change, false );
-        this.t5.removeEventListener( 'change', this.change, false );
-        
-        this.content.removeChild( this.t1 );
-        this.content.removeChild( this.t2 );
-        this.content.removeChild( this.t3 );
-        this.content.removeChild( this.t4 );
-        this.content.removeChild( this.t5 );
-        this.target.removeChild( this.content );
-
-        this.callback = null;
-        this.fun = null;
-        this.t1 = null;
-        this.t2 = null;
-        this.t3 = null;
-        this.t4 = null;
-        this.t5 = null;
-        this.content = null;
-        this.target = null;
-    }
-}*/
 //--------------------
 // BOOL
 //--------------------
@@ -402,6 +313,7 @@ UIsr.List = function(target, name, callback, value, list ){
     this.mouseDown = false;
     this.mover = true;
     this.dragValue = 0;
+    this.h = 20;
     
     this.timer = null;
 
@@ -427,6 +339,9 @@ UIsr.List.prototype = {
         this.sel.className = 'UIsr-textList';
         this.sel.innerHTML = this.value.toUpperCase();
         this.content.appendChild( this.sel );
+
+        
+
         this.sel.onmousedown=function(e){ this.displayList(); }.bind(this);
 
         /*this.target.onmouseover = function(){
@@ -451,7 +366,7 @@ UIsr.List.prototype = {
                 name = this.list[i];
                 item = document.createElement( 'div' );
                 item.className = 'UIsr-listItem';
-                item.innerHTML = name.toUpperCase();
+                item.innerHTML = name;//.toUpperCase();
                 item.name = name;
                 this.lin.appendChild(item);
             }
@@ -479,9 +394,15 @@ UIsr.List.prototype = {
             this.listHeight = this.list.length * 16;
             this.lcontent.style.zIndex = 1;
 
-            if(this.listHeight<80) this.lcontent.style.height = this.listHeight +'px';
-            else this.addScroll(); 
+            if(this.listHeight<80){ 
+                this.lcontent.style.height = this.listHeight +'px';
+                this.h = (this.listHeight+20);
+            } else {
+                this.addScroll();
+                this.h = 100;
+            }
         }
+        this.content.style.height = this.h+'px';
     },
     mouveOn:function(e){
         //console.log(e.target.name);
@@ -524,6 +445,7 @@ UIsr.List.prototype = {
         this.lcontent.style.zIndex = 0;
         //document.onclick = null;
         document.onclick = null;
+        this.content.style.height = '20px';
     },
     updatePosition:function(){
         this.pin.style.top = (this.dragValue-10) +'px';
@@ -557,7 +479,8 @@ UIsr.List.prototype = {
     drag:function(e){
         if(this.mouseDown){
             var rect = this.bg.getBoundingClientRect();
-            this.dragValue = (((e.clientY-rect.top-17)/this.h)*this.valueRange+this.min);//.toFixed(0))*1;
+            this.dragValue = (((e.pageY-rect.top)/this.h)*this.valueRange+this.min);//.toFixed(0))*1;
+            //this.dragValue = (((e.pageY-rect.top-17)/this.h)*this.valueRange+this.min);//.toFixed(0))*1;
             if(this.dragValue<this.min) this.dragValue = this.min;
             if(this.dragValue>this.max) this.dragValue = this.max;
             this.updatePosition();

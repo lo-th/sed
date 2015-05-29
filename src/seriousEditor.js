@@ -7,7 +7,7 @@
 
 'use strict';
 var Seriously;
-var Serious = { version:0.4 };
+var Serious = { version:0.6 };
 
 Serious.Sources = [ 'image', 'video', 'camera', 'scene', 'texture' ];
 
@@ -53,6 +53,9 @@ Serious.Editor = function(autorun, canvas ){
         console.log("auto")
     }
 
+    // all referency to 3d textures
+    this.textures = {};
+
     this.maxLayer = 9;
     this.LAYER = 0;
 
@@ -88,8 +91,8 @@ Serious.Editor = function(autorun, canvas ){
     this.move = {name:'', element:null, down:false, test:false,  x:0,y:0, tx:0, ty:0, mx:0, my:0};
     this.nset = { 
         w:40, h:40, r:6, 
-        sc1:'rgba(120,30,60,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)',
-        sc2:'rgba(120,30,60,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)',
+        sc1:'rgba(120,30,60,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)', nc1:'rgba(40,40,40,0.5)',
+        sc2:'rgba(120,30,60,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)', nc2:'rgba(40,40,40,0.8)',
     };
 
     this.selectID = -1;
@@ -124,7 +127,8 @@ Serious.Editor.prototype = {
         Serious.createClass('S-grid-plus', 'position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
 
         Serious.createClass('S-menu', 'width:300px; height:20px; position:absolute; right:0px; top:0px; pointer-events:auto; background:#282828; display:none; '+ str);
-        Serious.createClass('S-bmenu', 'width:300px; height:calc(100% - 270px); position:absolute; right:0px; top:270px; pointer-events:none; background:none; display:none; overflow:auto; overflow-x:hidden;'+ str)
+        Serious.createClass('S-bmenu', 'width:300px; height:calc(100% - 270px); position:absolute; right:0px; top:270px; pointer-events:none; background:none; display:none; overflow:auto; overflow-x:hidden;'+ str);
+        Serious.createClass('S-rmenu', 'width:300px; height:50px; position:absolute; right:0px; top:270px; pointer-events:none; background:#282828; display:none;'+ str)
 
         // node
         Serious.createClass('S-S', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.sc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
@@ -150,6 +154,15 @@ Serious.Editor.prototype = {
         Serious.createClass('S-sideButton-select:hover', 'background:#404040;');
         Serious.createClass('sideselect', ' background:#1a1a1a; color:#2A2; height:22px; border-right:1px solid #000;');
 
+        Serious.createClass('loadbutton', 'position:absolute; left:5px; top:0px; width:40px; height:40px; border:1px solid #666; pointer-events:auto; cursor:pointer; overflow: hidden; border-radius:6px;');
+        Serious.createClass('loadbutton:hover', 'background:#F0F;');
+        Serious.createClass('savebutton', 'position:absolute; left:50px; top:0px; width:40px; height:40px; border:1px solid #666; pointer-events:auto; cursor:pointer; overflow: hidden; border-radius:6px;');
+        Serious.createClass('savebutton:hover', 'background:#F0F;');
+        Serious.createClass('saveout', 'pointer-events:auto; cursor: pointer; width:90px; height:20px; position:absolute; top:6px; left: 132px; color:#F80; text-decoration:none;');
+
+        Serious.createClass('hidden', 'opacity: 0; -moz-opacity: 0; filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0)');
+        Serious.createClass('fileInput', 'cursor:pointer; height: 100%; position:absolute; top: 0; right: 0; font-size:50px;');
+
         this.content = document.createElement('div');
         this.content.name = 'root';
         this.content.className = 'editor';
@@ -159,6 +172,9 @@ Serious.Editor.prototype = {
 
         this.bmenu = document.createElement('div');
         this.bmenu.className = 'S-bmenu';
+
+        this.rmenu = document.createElement('div');
+        this.rmenu.className = 'S-rmenu';
 
         this.grid = document.createElement('div');
         this.grid.className = 'S-grid';
@@ -182,10 +198,12 @@ Serious.Editor.prototype = {
         this.icc.innerHTML = Serious.Logo(36, '#e2e2e2');
 
         this.initMenu();
+        this.initRootMenu();
 
         document.body.appendChild( this.content );
         document.body.appendChild( this.menu );
         document.body.appendChild( this.bmenu );
+        document.body.appendChild( this.rmenu );
         
 
         this.content.appendChild( this.icc );
@@ -230,7 +248,6 @@ Serious.Editor.prototype = {
             this.xprevdecale.push( [-30,-30,-30] );
             this.tmp.push( { nodes:[], links:[] } );
         }
-
         this.menuSelect(0);
     },
 
@@ -273,7 +290,9 @@ Serious.Editor.prototype = {
 
         this.menu.style.display = 'block';
         this.bmenu.style.display = 'block';
+        this.rmenu.style.display = 'block';
         this.gridBottom.style.display = 'block';
+        
 
         if(this.isFirst)this.refresh(0, true);
         else this.refresh(this.LAYER);
@@ -296,7 +315,9 @@ Serious.Editor.prototype = {
 
         this.menu.style.display = 'none';
         this.bmenu.style.display = 'none';
+        this.rmenu.style.display = 'none';
         this.gridBottom.style.display = 'none';
+
         this.clear();
         this.isFirst = false;
     },
@@ -309,6 +330,110 @@ Serious.Editor.prototype = {
         this.nodesDiv = [];
     },
 
+    //------------------------
+    // EXPORT
+    //------------------------
+
+    save:function(){
+        var layer = this.LAYER;
+        var i = 0, node, name, type, id, parametre;
+        var predata = { "nodes": [], "links": [] };
+
+        for(i=0; i<this.tmp[layer].nodes.length; i++){
+            node = this.tmp[layer].nodes[i];
+            name = node.name;
+            type = this.getType(name);
+            parametre = node.obj;//{id:this.getID(name)};
+            parametre.id = this.getID(name);
+            parametre.x = node.x;
+            parametre.y = node.y;
+            //prefix = this.getPrefix(name);
+            predata.nodes.push( [type, parametre] );
+        }
+        for(i=0; i<this.tmp[layer].links.length; i++){
+            predata.links.push(this.tmp[layer].links[i].getLink());
+        }
+
+        var data = JSON.stringify(predata, null, "\t");
+        var blob = new Blob([data], { type: 'text/plain' });
+        var objectURL = URL.createObjectURL(blob);
+
+        var a = document.createElement('a');
+        a.download = 'nono.json';//container.querySelector('input[type="text"]').value;
+        a.href = objectURL;//window.URL.createObjectURL(bb);
+        a.textContent = 'Download ready';
+        a.className = 'saveout'
+
+        a.dataset.downloadurl = ['text/plain', a.download, a.href].join(':');
+        a.draggable = true; // Don't really need, but good practice.
+        //a.classList.add('dragout');
+        this.rmenu.appendChild(a);
+
+        a.onclick = function(e) {
+            //URL.revokeObjectURL(a.href);
+            this.rmenu.removeChild(a);
+        }.bind(this);
+
+        document.body.addEventListener('dragstart', function(e) {
+          var a = e.target;
+          if (a.classList.contains('saveout')) {
+            e.dataTransfer.setData('DownloadURL', a.dataset.downloadurl);
+          }
+        }, false);
+
+        //this.outsave = document.createElement('div');
+        //this.outsave.className = 'saveout';
+        //this.outsave.innerHTML = '<a href="'+objectURL+'" download="MyGoogleLogo">download me</a>';
+        
+
+        //fileWriter.write(blob)
+        //window.open(objectURL, '_blank');
+        //window.focus();
+    },
+
+    load:function(data){
+        var i, l;
+        this.reset( this.LAYER );
+        //console.log(data);
+
+        for(i=0; i<data.nodes.length; i++){
+            this.add(data.nodes[i][0], data.nodes[i][1], this.LAYER);
+        }
+        for(i=0; i<data.links.length; i++){
+            l = data.links[i];
+            this.addLink(l[0], l[1], l[2], l[3],  this.LAYER);
+        }
+        this.refresh(this.LAYER);
+    },
+
+
+    initRootMenu:function(target){
+        this.saveB = document.createElement('div');
+        this.saveB.className = 'savebutton';
+        this.saveB.innerHTML = Serious.Icon('save');//'SAVE';
+        this.rmenu.appendChild(this.saveB);
+        this.saveB.onclick = function(e) { this.save(); }.bind(this);
+
+        this.loadB = document.createElement('div');
+        this.loadB.className = 'loadbutton';
+        this.loadB.innerHTML = Serious.Icon('load');//'LOAD';
+        this.rmenu.appendChild(this.loadB);
+
+        this.loader = document.createElement('input');
+        this.loader.type = "file";
+        this.loader.className = 'fileInput hidden';
+        this.loadB.appendChild(this.loader);
+
+        this.loadB.onchange = function(e) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var jsonTXT = e.target.result;
+                var data = JSON.parse(jsonTXT);
+                this.load(data);
+            }.bind(this);
+            reader.readAsText(this.loader.files[0]);
+        }.bind(this);
+    },
 
 
     //------------------------
@@ -346,7 +471,7 @@ Serious.Editor.prototype = {
             //--------------------------------- target
             case 'texture-3D':
                 prefix = 'T';
-                node = this.seriously.target( obj.texture, { canvas:obj.canvas || this.glCanvas });
+                node = this.seriously.target( this.textures[obj.texture], { canvas:obj.canvas || this.glCanvas });
             break;
             case 'canvas-3D':
                 prefix = 'T';
@@ -363,14 +488,14 @@ Serious.Editor.prototype = {
         }
 
         for(var e in obj){
-            if(e!=='texture' && e!=='canvas' && e!=='id' && e!=='n' && e in node){
+            if(e!=='texture' && e!=='canvas' && e!=='id' && e!=='n' && e!=='x' && e!=='y' && e in node){
                 node[e] = obj[e];
             }
         }
 
-        var id;
-        if( obj.id !== undefined ) id = obj.id;
-        else id = this.tmp[layer].nodes.length;
+        var id = obj.id || this.tmp[layer].nodes.length;
+        //if( obj.id !== undefined ) id = obj.id;
+        //else id = this.tmp[layer].nodes.length;
 
         var name = prefix +'_'+ id + '.' + type;
 
@@ -405,7 +530,10 @@ Serious.Editor.prototype = {
             break;
         }
 
-        this.tmp[layer].nodes[id] = { n:obj.n || prefix +'_'+ id, name:name, node:node, x:x, y:y }
+       // console.log(obj.x, obj.y)
+
+        this.tmp[layer].nodes[id] = { n:obj.n || prefix +'_'+ id, name:name, node:node, x:obj.x || x, y:obj.y || y, obj:obj }
+        //console.log(this.tmp[layer].nodes[id])
         
         return node;
     },
@@ -415,8 +543,9 @@ Serious.Editor.prototype = {
         while(i--) this.add(type, obj, i);
     },
 
-    remove:function(){
-
+    reset:function(layer){
+        this.xprevdecale[layer] = [-30,-30,-30];
+        this.tmp[layer] = { nodes:[], links:[] };
     },
 
     //-----------------------------------------------------------
@@ -658,11 +787,13 @@ Serious.Editor.prototype = {
             this.selectID = id;
             //this.menu.style.height = 'auto';
 
+            this.rmenu.style.display = 'none';
             this.showSelector(name);
         }
     },
     showRootMenu:function(){
-        this.addTitle('', 'SERIOUSLY ROOT', '' );
+        this.rmenu.style.display = 'block';
+        //this.addTitle('', 'SERIOUSLY ROOT' );
         //this.addOption(0, 'source', Serious.Sources);
         //this.addOption(1, 'effect', Serious.Effects);
         //this.addOption(2, 'target', Serious.Targets);
@@ -939,12 +1070,18 @@ Serious.Editor.prototype = {
     },
 
     addTitle:function(id, type, prefix){
+        prefix = prefix || '';
         var s = new UIsr.Title(this.bmenu, id, type, prefix);
-        switch(prefix){
-            case 'S': s.content.style.background = this.nset.sc2; break;
-            case 'E': s.content.style.background = this.nset.fc2; break;
-            case 'T': s.content.style.background = this.nset.tc2; break;
+        if(prefix){
+            switch(prefix){
+                case 'S': s.content.style.background = this.nset.sc2; break;
+                case 'E': s.content.style.background = this.nset.fc2; break;
+                case 'T': s.content.style.background = this.nset.tc2; break;
+            }
+        }else{
+            s.content.style.background = this.nset.nc2;
         }
+        
         this.sels.push(s);
     },
     addString:function(id, name){
@@ -1138,6 +1275,9 @@ Serious.Link = function(root, obj){
 }
 Serious.Link.prototype = {
     constructor: Serious.Link,
+    getLink:function(){
+        return [this.obj.target, this.obj.source, this.obj.targetN, this.obj.sourceN];
+    },
     clear:function(){
         var targetNode = this.root.tmp[this.root.LAYER].nodes[this.obj.target];
         var sourceNode = this.root.tmp[this.root.LAYER].nodes[this.obj.source];
@@ -1262,6 +1402,9 @@ Serious.Icon = function(type, size, color){
         case 'canvas-3D': t[1]="<path fill='"+color+"' d='M 25 18 L 25 16 23 14 18 14 15 17 15 23 18 26 23 26 25 24 25 22 24 22 22 24 20 24 18 22 18 18 20 16 22 16 24 18 25 18 M 16 9 L 20 13 24 9 16 9 M 24 8 L 24 6 16 6 16 8 24 8 M 30 10 L 25 10 22 13 25 13 26 12 28 12 28 28 12 28 12 12 14 12 15 13 18 13 15 10 10 10 10 30 30 30 30 10 Z'/>";break;
 
         case 18: t[1]="<path fill='"+color+"' d='M 16 11 L 14 11 14 14 11 14 11 16 14 16 14 19 16 19 16 16 19 16 19 14 16 14 16 11 Z'/>";break;
+
+        case 'load': t[1]="<path fill='"+color+"' d='M 22 20 L 25 20 20 15 15 20 18 20 18 26 22 26 22 20 M 30 24 L 28 24 28 28 12 28 12 24 10 24 10 30 30 30 30 24 M 27 13 L 27 10 13 10 13 13 27 13 Z'/>";break;
+        case 'save': t[1]="<path fill='"+color+"' d='M 22 16 L 22 10 18 10 18 16 15 16 20 21 25 16 22 16 M 30 24 L 28 24 28 28 12 28 12 24 10 24 10 30 30 30 30 24 M 27 27 L 27 24 13 24 13 27 27 27 Z'/>";break;
 
         //filter
         default: t[1]="<path fill='"+color+"' d='M 21 20 Q 24.4 17 23 13 22.5 11.6 20.9 10 L 18.9 10 Q 20.4 11.5 20.95 13 22.4 16.95 19 20 15.35 23.4 16.45 27 16.9 28.2 17.85 29.1 18.35 29.55 19 30 L 21 30 Q 19.1 28.3 18.5 27 17.05 23.65 21 20 M 20.2 14 Q 20.14 13.51 20 13 L 19.55 12 10 12 10 28 16.05 28 15.5 27 Q 15.28 26.50 15.15 26 L 12 26 12 14 20.2 14 M 21.9 10 Q 23.3 11.4 23.6 12 L 28 12 28 28 20.05 28 Q 20.4 28.5 20.9 29 21.4 29.5 22 30 L 30 30 30 10 21.9 10 Z'/>";break;

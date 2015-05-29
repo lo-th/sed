@@ -9,9 +9,6 @@ html{ overflow:hidden; width:100%; height:100%; }
 body { font-family:monospace; background:#222; font-size:12px; color:#fff;}
 #debug { position:absolute; top:10px; left:10px; width:200px; height:40px; pointer-events:none;}
 #canvas { position:absolute; pointer-events:auto; width:100%; height:100%;}
-#limite { position:absolute; right:300px; top:0; width:1px; height:100%; background:#f00;}
-#limite2 { position:absolute; right:30px; top:0; width:1px; height:100%; background:#0f0;}
-.environment{position:absolute; left:10px; bottom:10px; border:3px solid #74818b; width:64px; height:64px; cursor:pointer;}
 </style>
 <link rel="shortcut icon" href="favicon.ico">
 <script type="text/javascript" src="js/libs/three.min.js"></script>
@@ -23,53 +20,56 @@ body { font-family:monospace; background:#222; font-size:12px; color:#fff;}
 
 <body>
 <canvas id='canvas'></canvas>
-<div id='debug'>Seriously Editor<br>version 0.5 alpha</div>
-<!--<div id='limite'></div>
-<div id='limite2'></div>-->
+<div id='debug'>Seriously Editor<br>version 0.6 alpha</div>
 <script>
 
-
 var bgcolor = '333333';
-
 document.body.style.background = '#'+ bgcolor;
 var canvas = document.getElementById('canvas');
 var debug = document.getElementById('debug');
 
-
-var w = 640;
-var h = 480;
-var r = h/w;
-
+// init three viewer
 var v = new V.View(90, 90, 25, 60, null);
-var tx1 = v.addSeriousTexture();
-var tx2 = v.addSeriousTexture();
-var tx3 = v.addSeriousTexture();
-// init serious video effect
-var serious = new Serious.Editor( true, v.canvas );
 
-serious.add('image', {n:'s1', src:'images/akira.jpg'});
-serious.add('image', {n:'s2', src:'images/moeb.jpg'});
-serious.add('image', {n:'s3', src:'images/rank.jpg'}, 3);
-serious.add('image', {n:'s4', src:'images/gime.jpg'});
+// init seriously editor
+var s = new Serious.Editor( true, v.canvas );
 
-serious.add('split', {n:'f1'});
-serious.add('bleach-bypass', {n:'f2'});
-serious.add('brightness-contrast', {n:'f3'});
-serious.add('blend', {n:'f4'});
-serious.add('checkerboard', {n:'f5'});
+// create three textures
+s.textures['tx1'] = v.addSeriousTexture();
+s.textures['tx2'] = v.addSeriousTexture();
+s.textures['tx3'] = v.addSeriousTexture();
 
+// sources
+s.add('image', {n:'s1', src:'images/akira.jpg'});
+s.add('image', {n:'s2', src:'images/moeb.jpg'});
+s.add('image', {n:'s3', src:'images/rank.jpg'}, 3);
+s.add('image', {n:'s4', src:'images/gime.jpg'});
 
-serious.add('texture-3D', { n:'t1', texture: tx2 }  );
-serious.add('texture-3D', { n:'t2', texture: tx3 }  );
-serious.addOnAll('texture-3D', { n:'t3', texture: tx1 }  );
+// effects
+s.add('split', {n:'f1'});
+s.add('bleach-bypass', {n:'f2'});
+s.add('brightness-contrast', {n:'f3'});
+s.add('blend', {n:'f4'});
+s.add('checkerboard', {n:'f5'});
 
+// target
+s.add('texture-3D', { n:'t0', texture: 'tx1' }  );
+s.add('texture-3D', { n:'t1', texture: 'tx2' }  );
+s.add('texture-3D', { n:'t2', texture: 'tx3' }  );
 
-serious.addLink('s1', 'f2');
-serious.addLink('f2', 't1');
+//serious.addOnAll('texture-3D', { n:'t3', texture: tx1 }  );
 
-var m0 = v.addPlane(tx1);
-var m1 = v.addPlane(tx2);
-var m2 = v.addPlane(tx3);
+// add effect on layer 6
+s.add('bleach-bypass', {n:'f2'}, 6);
+s.add('brightness-contrast', {n:'f3'}, 6);
+
+// add links
+s.addLink('s1', 'f2');
+s.addLink('f2', 't1');
+
+var m0 = v.addPlane(s.textures['tx1']);
+var m1 = v.addPlane(s.textures['tx2']);
+var m2 = v.addPlane(s.textures['tx3']);
 
 m0.position.x = -12;
 m2.position.x = 12;
