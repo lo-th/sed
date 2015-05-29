@@ -67,12 +67,16 @@ s.add('brightness-contrast', {n:'f3'}, 6);
 s.addLink('s1', 'f2');
 s.addLink('f2', 't1');
 
+
+
 var m0 = v.addPlane(s.textures['tx1']);
 var m1 = v.addPlane(s.textures['tx2']);
 var m2 = v.addPlane(s.textures['tx3']);
 
 m0.position.x = -12;
 m2.position.x = 12;
+
+s.refreshOnly(0, true);
 
 loop();
 

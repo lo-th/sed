@@ -128,7 +128,8 @@ Serious.Editor.prototype = {
 
         Serious.createClass('S-menu', 'width:300px; height:20px; position:absolute; right:0px; top:0px; pointer-events:auto; background:#282828; display:none; '+ str);
         Serious.createClass('S-bmenu', 'width:300px; height:calc(100% - 270px); position:absolute; right:0px; top:270px; pointer-events:none; background:none; display:none; overflow:auto; overflow-x:hidden;'+ str);
-        Serious.createClass('S-rmenu', 'width:300px; height:50px; position:absolute; right:0px; top:270px; pointer-events:none; background:#282828; display:none;'+ str)
+        Serious.createClass('S-rmenu', 'width:300px; height:50px; position:absolute; right:0px; top:270px; pointer-events:none; background:#282828; display:none;'+ str);
+        Serious.createClass('S-amenu', 'width:300px; height:auto; position:absolute; padding:3px; right:0px; top:50px; pointer-events:none; background:#282828; display:none; text-align:center;'+ str);
 
         // node
         Serious.createClass('S-S', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.sc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
@@ -152,16 +153,24 @@ Serious.Editor.prototype = {
         Serious.createClass('S-sideButton', 'position:absolute; width:29px; height:20px; padding-top:5px; background:#282828; pointer-events:auto; cursor:pointer; font-size:14px; text-align:center; border-left:1px solid #333; color:#e2e2e2;');
         Serious.createClass('S-sideButton:hover', 'background:#404040;');
         Serious.createClass('S-sideButton-select:hover', 'background:#404040;');
-        Serious.createClass('sideselect', ' background:#1a1a1a; color:#2A2; height:22px; border-right:1px solid #000;');
+        Serious.createClass('sideselect', ' background:#1a1a1a; color:#F0F; height:22px; border-right:1px solid #000;');
 
-        Serious.createClass('loadbutton', 'position:absolute; left:5px; top:0px; width:40px; height:40px; border:1px solid #666; pointer-events:auto; cursor:pointer; overflow: hidden; border-radius:6px;');
-        Serious.createClass('loadbutton:hover', 'background:#F0F;');
-        Serious.createClass('savebutton', 'position:absolute; left:50px; top:0px; width:40px; height:40px; border:1px solid #666; pointer-events:auto; cursor:pointer; overflow: hidden; border-radius:6px;');
-        Serious.createClass('savebutton:hover', 'background:#F0F;');
+        Serious.createClass('root-button', 'position:absolute; left:10px; top:20px; width:26px; height:26px; border:1px solid #333; pointer-events:auto; cursor:pointer; overflow: hidden;'+ str);
+        Serious.createClass('root-button-inner', 'position:absolute; left:-8px; top:-8px; pointer-events:none;')
+        Serious.createClass('root-button:hover', 'background:#F0F;');
+        Serious.createClass('root-button.select', 'background:#808;');
+
+        Serious.createClass('root-text', 'position:absolute; left:0px; top:0px; width:300px; height:20px; pointer-events:none; padding-left:10px; '+ str);
+
+
         Serious.createClass('saveout', 'pointer-events:auto; cursor: pointer; width:90px; height:20px; position:absolute; top:6px; left: 132px; color:#F80; text-decoration:none;');
 
         Serious.createClass('hidden', 'opacity: 0; -moz-opacity: 0; filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0)');
         Serious.createClass('fileInput', 'cursor:pointer; height: 100%; position:absolute; top: 0; right: 0; font-size:50px;');
+
+        Serious.createClass('mini-button', 'width:20px; height:20px; position:relative; margin:5px; display:inline-block; background:#0F0; border:1px solid rgba(0,0,0,0); pointer-events:auto; cursor:pointer; border-radius:3px; overflow: hidden;');
+        Serious.createClass('mini-button:hover', 'border:1px solid #e2e2e2;');
+        Serious.createClass('mini-button-inner', 'position:absolute; left:-5px; top:-5px; pointer-events:none;')
 
         this.content = document.createElement('div');
         this.content.name = 'root';
@@ -175,6 +184,9 @@ Serious.Editor.prototype = {
 
         this.rmenu = document.createElement('div');
         this.rmenu.className = 'S-rmenu';
+
+        this.amenu = document.createElement('div');
+        this.amenu.className = 'S-amenu';
 
         this.grid = document.createElement('div');
         this.grid.className = 'S-grid';
@@ -204,6 +216,7 @@ Serious.Editor.prototype = {
         document.body.appendChild( this.menu );
         document.body.appendChild( this.bmenu );
         document.body.appendChild( this.rmenu );
+        this.rmenu.appendChild( this.amenu );
         
 
         this.content.appendChild( this.icc );
@@ -213,7 +226,6 @@ Serious.Editor.prototype = {
         this.grid.appendChild( this.select );
         this.grid.appendChild( this.gridTop );
         
-
         this.content.oncontextmenu = function(e){ this.contextmenu(e); }.bind(this);
         this.content.onmouseover = function(e){ this.mouseover(e); }.bind(this);
         this.content.onmouseout = function(e){ this.mouseout(e); }.bind(this);
@@ -408,21 +420,43 @@ Serious.Editor.prototype = {
 
 
     initRootMenu:function(target){
+        var i, b, c;
+        this.isAddMenu = false;
+        this.rText = document.createElement('div');
+        this.rText.className = 'root-text';
+        this.rText.innerHTML = 'yoooo';
+        this.rmenu.appendChild(this.rText);
+
+
+
+        this.addB = document.createElement('div');
+        this.addB.className = 'root-button';
+        this.rmenu.appendChild(this.addB);
+        this.addB.onclick = function(e) { this.showAddMenu(); }.bind(this);
+        this.addB.onmouseover = function(e) { if(this.isAddMenu)this.tell('hide add menu'); else this.tell('show add menu'); }.bind(this);
+        this.addB.onmouseout = function(e) {  this.tell(); }.bind(this);
+
+        
+
         this.saveB = document.createElement('div');
-        this.saveB.className = 'savebutton';
-        this.saveB.innerHTML = Serious.Icon('save');//'SAVE';
+        this.saveB.className = 'root-button';
+        this.saveB.style.left = '100px';
         this.rmenu.appendChild(this.saveB);
         this.saveB.onclick = function(e) { this.save(); }.bind(this);
+        this.saveB.onmouseover = function(e) { this.tell('save to json'); }.bind(this);
+        this.saveB.onmouseout = function(e) {  this.tell(); }.bind(this);
 
         this.loadB = document.createElement('div');
-        this.loadB.className = 'loadbutton';
-        this.loadB.innerHTML = Serious.Icon('load');//'LOAD';
+        this.loadB.className = 'root-button';
+        this.loadB.style.left = '55px';
         this.rmenu.appendChild(this.loadB);
 
         this.loader = document.createElement('input');
         this.loader.type = "file";
         this.loader.className = 'fileInput hidden';
         this.loadB.appendChild(this.loader);
+        this.loadB.onmouseover = function(e) { this.tell('load json'); }.bind(this);
+        this.loadB.onmouseout = function(e) {  this.tell(); }.bind(this);
 
         this.loadB.onchange = function(e) {
             var reader = new FileReader();
@@ -433,12 +467,103 @@ Serious.Editor.prototype = {
             }.bind(this);
             reader.readAsText(this.loader.files[0]);
         }.bind(this);
+
+        i = 3
+        while(i--){
+            b = document.createElement('div');
+            b.className = 'root-button-inner';
+            switch(i){
+                case 0 :
+                b.innerHTML = Serious.Icon('add');
+                this.addB.appendChild(b);
+                break;
+                case 1 :
+                b.innerHTML = Serious.Icon('load');
+                this.loadB.appendChild(b);
+                break;
+                case 2 :
+                b.innerHTML = Serious.Icon('save');
+                this.saveB.appendChild(b);
+                break;
+            }
+        }
+
+
+       
+        i = Serious.Sources.length;
+        
+        while(i--){
+            b = document.createElement('div');
+            b.className = 'mini-button';
+            b.name = Serious.Sources[i];
+            b.style.background = this.nset.sc1;
+            c = document.createElement('div');
+            c.className = 'mini-button-inner';
+            c.innerHTML = Serious.Icon(b.name, 30);
+            b.appendChild(c);
+            this.amenu.appendChild(b);
+            b.onmouseover = function(e) { this.tell('+ ' + e.target.name); e.target.style.background = this.nset.sc2; }.bind(this);
+            b.onmouseout = function(e) { this.tell(); e.target.style.background = this.nset.sc1; }.bind(this);
+            b.onmousedown = function(e) { this.addItem(e.target.name); }.bind(this);
+        }
+        i = Serious.Effects.length;
+        while(i--){
+            b = document.createElement('div');
+            b.className = 'mini-button';
+            b.name = Serious.Effects[i];
+            b.style.background = this.nset.fc1;
+            c = document.createElement('div');
+            c.className = 'mini-button-inner';
+            c.innerHTML = Serious.Icon(b.name, 30);
+            b.appendChild(c);
+            this.amenu.appendChild(b);
+            b.onmouseover = function(e) { this.tell('+ ' + e.target.name); e.target.style.background = this.nset.fc2; }.bind(this);
+            b.onmouseout = function(e) { this.tell(); e.target.style.background = this.nset.fc1; }.bind(this);
+            b.onmousedown = function(e) { this.addItem(e.target.name); }.bind(this);
+        }
+        i = Serious.Targets.length;
+        while(i--){
+            b = document.createElement('div');
+            b.className = 'mini-button';
+            b.name = Serious.Targets[i];
+            b.style.background = this.nset.tc1;
+            c = document.createElement('div');
+            c.className = 'mini-button-inner';
+            c.innerHTML = Serious.Icon(b.name, 30);
+            b.appendChild(c);
+            this.amenu.appendChild(b);
+            b.onmouseover = function(e) { this.tell('+ ' + e.target.name); e.target.style.background = this.nset.tc2; }.bind(this);
+            b.onmouseout = function(e) {  this.tell(); e.target.style.background = this.nset.tc1; }.bind(this);
+            b.onmousedown = function(e) { this.addItem(e.target.name); }.bind(this);
+        }
+    },
+
+    tell:function(string){
+        if(!string) string = 'Seriously editor v' + Serious.version;
+        this.rText.innerHTML = string;
+    },
+
+    showAddMenu:function(){
+        if(this.isAddMenu){
+            this.isAddMenu = false;
+            this.amenu.style.display = 'none';
+            this.addB.className = 'root-button';
+        }else{
+            this.isAddMenu = true;
+            this.amenu.style.display = 'block';
+            this.addB.className = 'root-button select';
+        }
     },
 
 
     //------------------------
     // ADD
     //------------------------
+
+    addItem:function(type){
+        this.add(type, {}, this.LAYER); 
+        this.refresh(this.LAYER);
+    },
 
     add:function(type, obj, layer){
 
@@ -461,12 +586,11 @@ Serious.Editor.prototype = {
                 node.autoPlay = true;
                 node.loop = true;
                 node.play();
-                node.url = obj.src;
             break;
             case 'image':
                 prefix = 'S'; 
                 node = document.createElement('img');
-                node.url = obj.src;
+                //node.url = obj.src;
             break;
             //--------------------------------- target
             case 'texture-3D':
@@ -552,9 +676,9 @@ Serious.Editor.prototype = {
 
     // DISPLAY 
 
-    refreshOnly:function(layer){
+    refreshOnly:function(layer, force){
         layer = layer || 0;
-        if(layer!==this.LAYER){
+        if(layer!==this.LAYER || force){
             this.LAYER = layer;
             this.applyLinks();
             this.menuSelect(layer,true);
@@ -808,6 +932,7 @@ Serious.Editor.prototype = {
 
         switch(type){
             case 'image':case 'video': this.addURL(id); break;
+            case 'texture-3D': this.addTextureLink(id); break;
             case 'accumulator':
                 this.addSlide(id, 'opacity', 0, 1, 2);
                 this.addList(id, 'blendMode', Serious.BlendMode);
@@ -1114,9 +1239,19 @@ Serious.Editor.prototype = {
     },
     addURL:function(id){
         var name = 'src';
-        var callback = function(v){ console.log(v); this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        var s = new UIsr.Url(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node.url);
+        var node = this.tmp[this.LAYER].nodes[id];
+        var callback = function(v){  node.obj.src = v; node.node.src = v; }.bind(this);
+        var s = new UIsr.Url(this.bmenu, name, callback, node.obj.src );
         s.content.style.background = this.nset.sc1;
+        this.sels.push( s );
+    },
+    addTextureLink:function(id){ //this.textures[obj.texture]
+        var name = 'texture';
+        var node = this.tmp[this.LAYER].nodes[id];
+
+        var callback = function(v){ node.obj.texture = v; this.tmp[this.LAYER].nodes[id].node.texture = this.textures[v]; }.bind(this);
+        var s = new UIsr.Url(this.bmenu, name, callback, node.obj.texture );
+        s.content.style.background = this.nset.tc1;
         this.sels.push( s );
     },
 
@@ -1403,8 +1538,13 @@ Serious.Icon = function(type, size, color){
 
         case 18: t[1]="<path fill='"+color+"' d='M 16 11 L 14 11 14 14 11 14 11 16 14 16 14 19 16 19 16 16 19 16 19 14 16 14 16 11 Z'/>";break;
 
+        case 'time': t[1]="<path fill='"+color+"' d='M 30 20 Q 30 15.85 27.05 12.9 24.15 10 20 10 15.85 10 12.9 12.9 10 15.85 10 20 10 24.15 12.9 27.05 15.85 30 20 30 24.15 30 27.05 27.05 30 24.15 30 20 M 25.65 14.35 Q 28 16.7 28 20 28 22.9353515625 26.15 25.1 25.9095703125 25.3904296875 25.65 25.65 25.390234375 25.909765625 25.1 26.15 22.9353515625 28 20 28 16.7 28 14.35 25.65 12 23.3 12 20 12 16.7 14.35 14.35 16.7 12 20 12 23.3 12 25.65 14.35 M 21 19 L 21 14 20 13 19 14 19 19 20 18 21 19 M 20 19 L 19 20 24.5 25.5 25.5 24.5 20 19 Z'/>";break;
+
+        // root menu
         case 'load': t[1]="<path fill='"+color+"' d='M 22 20 L 25 20 20 15 15 20 18 20 18 26 22 26 22 20 M 30 24 L 28 24 28 28 12 28 12 24 10 24 10 30 30 30 30 24 M 27 13 L 27 10 13 10 13 13 27 13 Z'/>";break;
         case 'save': t[1]="<path fill='"+color+"' d='M 22 16 L 22 10 18 10 18 16 15 16 20 21 25 16 22 16 M 30 24 L 28 24 28 28 12 28 12 24 10 24 10 30 30 30 30 24 M 27 27 L 27 24 13 24 13 27 27 27 Z'/>";break;
+        case 'del': t[1]="<path fill='"+color+"' d='M 30 12 L 28 10 12 10 10 12 10 28 12 30 28 30 30 28 30 12 M 27 12 L 28 13 28 27 27 28 13 28 12 27 12 13 13 12 27 12 M 23.55 17.85 L 22.15 16.45 20 18.6 17.85 16.45 16.45 17.85 18.6 20 16.5 22.1 17.9 23.5 20 21.4 22.1 23.5 23.5 22.1 21.4 20 23.55 17.85 Z'/>";break;
+        case 'add': t[1]="<path fill='"+color+"' d='M 30 12 L 28 10 12 10 10 12 10 28 12 30 28 30 30 28 30 12 M 27 12 L 28 13 28 27 27 28 13 28 12 27 12 13 13 12 27 12 M 21 24 L 21 21 24 21 24 19 21 19 21 16 19 16 19 19 16 19 16 21 19 21 19 24 21 24 Z'/>";break;
 
         //filter
         default: t[1]="<path fill='"+color+"' d='M 21 20 Q 24.4 17 23 13 22.5 11.6 20.9 10 L 18.9 10 Q 20.4 11.5 20.95 13 22.4 16.95 19 20 15.35 23.4 16.45 27 16.9 28.2 17.85 29.1 18.35 29.55 19 30 L 21 30 Q 19.1 28.3 18.5 27 17.05 23.65 21 20 M 20.2 14 Q 20.14 13.51 20 13 L 19.55 12 10 12 10 28 16.05 28 15.5 27 Q 15.28 26.50 15.15 26 L 12 26 12 14 20.2 14 M 21.9 10 Q 23.3 11.4 23.6 12 L 28 12 28 28 20.05 28 Q 20.4 28.5 20.9 29 21.4 29.5 22 30 L 30 30 30 10 21.9 10 Z'/>";break;
