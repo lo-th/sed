@@ -31,7 +31,7 @@ Serious.Effects = [
     'whitebalance'
 ];
 
-Serious.Targets = [ 'texture-3D', 'canvas' ];
+Serious.Targets = [ 'texture-3D', 'canvas-3D' ];
 
 Serious.BlendMode = [
     'normal',      'lighten',     'darken',      'multiply',   'average',
@@ -46,6 +46,9 @@ Serious.BlendMode = [
 Serious.BlendSizeMode = [ 'bottom', 'top', 'union', 'intersection' ];
 
 Serious.Editor = function(autorun, canvas ){
+
+    this.body = document.body;
+
     this.glCanvas = canvas || null;
     this.seriously = new Seriously();
     if(autorun){
@@ -55,6 +58,8 @@ Serious.Editor = function(autorun, canvas ){
 
     // all referency to 3d textures
     this.textures = {};
+    this.texture_default = null;
+    this.canvas_default = null;
 
     this.maxLayer = 9;
     this.LAYER = 0;
@@ -116,10 +121,16 @@ Serious.Editor.prototype = {
     render:function(){
         this.seriously.render();
     },
+    element:function(className, type){
+        type = type || 'div';
+        var el = document.createElement(type);
+        if(className) el.className = className;
+        return el;
+    },
     init:function(){
         var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; font-family:Helvetica, Arial, sans-serif; font-size:12px; color:#e2e2e2;';
-        Serious.createClass('editor', 'width:40px; height:40px; position:absolute; right:10px; top:20px; border:5px solid #282828; cursor:move; overflow:hidden; background:#1a1a1a;' + str );
-        Serious.createClass('editor:hover', 'box-shadow:inset 0 0 0 1px #000');
+        Serious.createClass('S-editor', 'width:40px; height:40px; position:absolute; right:10px; top:20px; border:5px solid #282828; cursor:move; overflow:hidden; background:#1a1a1a;' + str );
+        Serious.createClass('S-editor:hover', 'box-shadow:inset 0 0 0 1px #000');
 
         Serious.createClass('S-icc', 'position:absolute; left:-5px; top:-4px; text-align:center; width:40px; height:40px; pointer-events:none;'+ str);
 
@@ -172,56 +183,36 @@ Serious.Editor.prototype = {
         Serious.createClass('mini-button:hover', 'border:1px solid #e2e2e2;');
         Serious.createClass('mini-button-inner', 'position:absolute; left:-5px; top:-5px; pointer-events:none;')
 
-        this.content = document.createElement('div');
+        this.content = this.element('S-editor');
         this.content.name = 'root';
-        this.content.className = 'editor';
 
-        this.menu = document.createElement('div');
-        this.menu.className = 'S-menu';
+        this.menu = this.element('S-menu');
+        this.bmenu = this.element('S-bmenu');
+        this.rmenu = this.element('S-rmenu');
+        this.amenu = this.element('S-amenu');
+        this.grid = this.element('S-grid');
+        this.gridBottom = this.element('S-gris-plus', 'canvas');
+        this.select = this.element('S-select');
+        this.gridTop = this.element('S-grid-plus');
+        this.icc = this.element('S-icc');
 
-        this.bmenu = document.createElement('div');
-        this.bmenu.className = 'S-bmenu';
-
-        this.rmenu = document.createElement('div');
-        this.rmenu.className = 'S-rmenu';
-
-        this.amenu = document.createElement('div');
-        this.amenu.className = 'S-amenu';
-
-        this.grid = document.createElement('div');
-        this.grid.className = 'S-grid';
-        
-
-        this.gridBottom = document.createElement('canvas');
         this.gridBottom.width = this.gridsize.x;
         this.gridBottom.height = this.gridsize.y;
-        this.gridBottom.className = 'S-gris-plus';
         this.gridBottom.style.display = 'none';
         this.linkcontext = this.gridBottom.getContext('2d');
-        
-        this.select = document.createElement('div');
-        this.select.className = 'S-select';
-        
-        this.gridTop = document.createElement('div');
-        this.gridTop.className = 'S-grid-plus';
-        
-        this.icc =  document.createElement('div');
-        this.icc.className = 'S-icc';
         this.icc.innerHTML = Serious.Logo(36, '#e2e2e2');
 
         this.initMenu();
         this.initRootMenu();
 
-        document.body.appendChild( this.content );
-        document.body.appendChild( this.menu );
-        document.body.appendChild( this.bmenu );
-        document.body.appendChild( this.rmenu );
-        this.rmenu.appendChild( this.amenu );
-        
+        this.body.appendChild( this.content );
+        this.body.appendChild( this.menu );
+        this.body.appendChild( this.bmenu );
+        this.body.appendChild( this.rmenu );
 
+        this.rmenu.appendChild( this.amenu );
         this.content.appendChild( this.icc );
         this.content.appendChild( this.grid );
-        //this.content.appendChild( this.bclose );
         this.grid.appendChild( this.gridBottom );
         this.grid.appendChild( this.select );
         this.grid.appendChild( this.gridTop );
@@ -237,8 +228,7 @@ Serious.Editor.prototype = {
     },
 
     initMenu:function(){
-        this.bclose =  document.createElement('div');
-        this.bclose.className = 'S-closeButton';
+        this.bclose = this.element('S-closeButton');
         this.bclose.innerHTML = 'X';
         this.bclose.onclick = function(e){ this.close(); }.bind(this);
 
@@ -247,8 +237,7 @@ Serious.Editor.prototype = {
         this.optionButton = [];
         var b;
         for(var i=0; i<this.maxLayer; i++){
-            b =  document.createElement('div');
-            b.className = 'S-sideButton';
+            b = this.element('S-sideButton');
             b.innerHTML = i;
             b.style.left = 25+(i*30)+ 'px';
             b.name = i;
@@ -286,8 +275,9 @@ Serious.Editor.prototype = {
         this.icc.style.top = '-7px';
         this.icc.style.left = '20px';
 
+        var self = this;
         this.grid.style.background = 'url(' + (function() {
-            var canvas = document.createElement('canvas');
+            var canvas = self.element(null,'canvas');
             canvas.width = 10;
             canvas.height = 10;
             var context = canvas.getContext('2d');
@@ -370,11 +360,12 @@ Serious.Editor.prototype = {
         var blob = new Blob([data], { type: 'text/plain' });
         var objectURL = URL.createObjectURL(blob);
 
-        var a = document.createElement('a');
+        //var a = document.createElement('a');
+        var a = this.element('saveout', 'a');
         a.download = 'nono.json';//container.querySelector('input[type="text"]').value;
         a.href = objectURL;//window.URL.createObjectURL(bb);
         a.textContent = 'Download ready';
-        a.className = 'saveout'
+        //a.className = 'saveout'
 
         a.dataset.downloadurl = ['text/plain', a.download, a.href].join(':');
         a.draggable = true; // Don't really need, but good practice.
@@ -422,38 +413,28 @@ Serious.Editor.prototype = {
     initRootMenu:function(target){
         var i, b, c;
         this.isAddMenu = false;
-        this.rText = document.createElement('div');
-        this.rText.className = 'root-text';
-        this.rText.innerHTML = 'yoooo';
+        this.rText = this.element('root-text');
         this.rmenu.appendChild(this.rText);
 
-
-
-        this.addB = document.createElement('div');
-        this.addB.className = 'root-button';
+        this.addB = this.element('root-button');
         this.rmenu.appendChild(this.addB);
         this.addB.onclick = function(e) { this.showAddMenu(); }.bind(this);
         this.addB.onmouseover = function(e) { if(this.isAddMenu)this.tell('hide add menu'); else this.tell('show add menu'); }.bind(this);
         this.addB.onmouseout = function(e) {  this.tell(); }.bind(this);
 
-        
-
-        this.saveB = document.createElement('div');
-        this.saveB.className = 'root-button';
+        this.saveB = this.element('root-button');
         this.saveB.style.left = '100px';
         this.rmenu.appendChild(this.saveB);
         this.saveB.onclick = function(e) { this.save(); }.bind(this);
         this.saveB.onmouseover = function(e) { this.tell('save to json'); }.bind(this);
         this.saveB.onmouseout = function(e) {  this.tell(); }.bind(this);
 
-        this.loadB = document.createElement('div');
-        this.loadB.className = 'root-button';
+        this.loadB = this.element('root-button');
         this.loadB.style.left = '55px';
         this.rmenu.appendChild(this.loadB);
 
-        this.loader = document.createElement('input');
+        this.loader = this.element('fileInput hidden', 'input');
         this.loader.type = "file";
-        this.loader.className = 'fileInput hidden';
         this.loadB.appendChild(this.loader);
         this.loadB.onmouseover = function(e) { this.tell('load json'); }.bind(this);
         this.loadB.onmouseout = function(e) {  this.tell(); }.bind(this);
@@ -470,8 +451,7 @@ Serious.Editor.prototype = {
 
         i = 3
         while(i--){
-            b = document.createElement('div');
-            b.className = 'root-button-inner';
+            b = this.element('root-button-inner');
             switch(i){
                 case 0 :
                 b.innerHTML = Serious.Icon('add');
@@ -488,54 +468,37 @@ Serious.Editor.prototype = {
             }
         }
 
-
-       
-        i = Serious.Sources.length;
-        
-        while(i--){
-            b = document.createElement('div');
-            b.className = 'mini-button';
+        var bb = [];
+        for(i=0; i<Serious.Sources.length; i++){
+            b = this.element('mini-button');
             b.name = Serious.Sources[i];
             b.style.background = this.nset.sc1;
-            c = document.createElement('div');
-            c.className = 'mini-button-inner';
-            c.innerHTML = Serious.Icon(b.name, 30);
-            b.appendChild(c);
-            this.amenu.appendChild(b);
-            b.onmouseover = function(e) { this.tell('+ ' + e.target.name); e.target.style.background = this.nset.sc2; }.bind(this);
-            b.onmouseout = function(e) { this.tell(); e.target.style.background = this.nset.sc1; }.bind(this);
-            b.onmousedown = function(e) { this.addItem(e.target.name); }.bind(this);
+            bb.push(b);
         }
-        i = Serious.Effects.length;
-        while(i--){
-            b = document.createElement('div');
-            b.className = 'mini-button';
+        for(i=0; i<Serious.Effects.length; i++){
+            b = this.element('mini-button');
             b.name = Serious.Effects[i];
             b.style.background = this.nset.fc1;
-            c = document.createElement('div');
-            c.className = 'mini-button-inner';
-            c.innerHTML = Serious.Icon(b.name, 30);
-            b.appendChild(c);
-            this.amenu.appendChild(b);
-            b.onmouseover = function(e) { this.tell('+ ' + e.target.name); e.target.style.background = this.nset.fc2; }.bind(this);
-            b.onmouseout = function(e) { this.tell(); e.target.style.background = this.nset.fc1; }.bind(this);
-            b.onmousedown = function(e) { this.addItem(e.target.name); }.bind(this);
+            bb.push(b);
         }
-        i = Serious.Targets.length;
-        while(i--){
-            b = document.createElement('div');
-            b.className = 'mini-button';
+        for(i=0; i<Serious.Targets.length; i++){
+            b = this.element('mini-button');
             b.name = Serious.Targets[i];
             b.style.background = this.nset.tc1;
-            c = document.createElement('div');
-            c.className = 'mini-button-inner';
+            bb.push(b);
+        }
+
+        for(i=0; i<bb.length; i++){
+            b = bb[i];
+            c = this.element('mini-button-inner');
             c.innerHTML = Serious.Icon(b.name, 30);
             b.appendChild(c);
             this.amenu.appendChild(b);
-            b.onmouseover = function(e) { this.tell('+ ' + e.target.name); e.target.style.background = this.nset.tc2; }.bind(this);
-            b.onmouseout = function(e) {  this.tell(); e.target.style.background = this.nset.tc1; }.bind(this);
             b.onmousedown = function(e) { this.addItem(e.target.name); }.bind(this);
+            b.onmouseover = function(e) { this.tell('+ ' + e.target.name); }.bind(this);
+            b.onmouseout = function(e) {  this.tell(); }.bind(this);
         }
+
     },
 
     tell:function(string){
@@ -561,7 +524,8 @@ Serious.Editor.prototype = {
     //------------------------
 
     addItem:function(type){
-        this.add(type, {}, this.LAYER); 
+        if(type == 'texture-3D') this.add(type, { texture:this.texture_default }, this.LAYER);
+        else this.add(type, {}, this.LAYER); 
         this.refresh(this.LAYER);
     },
 
@@ -745,16 +709,14 @@ Serious.Editor.prototype = {
         var type = this.getType(name);
         var prefix = this.getPrefix(name);
 
-        var node = document.createElement('div');
-        node.className = 'S-'+ prefix;
+        var node = this.element('S-'+ prefix);
         node.name = name;
 
         this.gridTop.appendChild(node);
         
         this.nodesDiv[id] = node;
 
-        var icon = document.createElement('div');
-        icon.className = 'S-icon';
+        var icon = this.element('S-icon');
         icon.innerHTML =  Serious.Icon(type);
         node.appendChild(icon);
         node.style.left = this.tmp[this.LAYER].nodes[id].x + 'px';
@@ -775,22 +737,18 @@ Serious.Editor.prototype = {
         }
 
         if(inner){
-            inn = document.createElement('div');
-            inn.className = 'S-in';
-            
+            inn = this.element('S-in');
             if(type=='blend' || type=='split') inn.name = 'I1_'+id+'.'+type;
             else inn.name = 'I0_'+id+'.'+type;
             node.appendChild(inn);
         }
         if(outer){
-            out = document.createElement('div');
-            out.className = 'S-out';
+            out = this.element('S-out');
             out.name = 'O0_'+id+'.'+type;
             node.appendChild(out);
         }
         if(inner2){
-            inn2 = document.createElement('div');
-            inn2.className = 'S-in';
+            inn2 = this.element('S-in');
             inn2.name = 'I2_'+id+'.'+type;
             inn2.style.left = '24px';
             inn.style.left = '6px';
