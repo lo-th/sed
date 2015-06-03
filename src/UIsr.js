@@ -6,15 +6,80 @@
 */
 
 'use strict';
-var UIsr = { version:0.2 };
 
-UIsr.nset = {
-    width:300 , height:262, w:40, h:40, r:10, 
-    sc1:'rgba(120,30,60,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)', nc1:'rgba(40,40,40,0.5)',
-    sc2:'rgba(120,30,60,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)', nc2:'rgba(40,40,40,0.8)',
-};
+var UIsr = UIsr || ( function () {
+    var _uis = [];
+    return {
+        REVISION: '1',
+        events:[ 'onkeyup', 'onkeydown', 'onmouseover', 'onmouseout', 'onclick', 'onchange' ],
+        nset:{
+            width:300 , height:262, w:40, h:40, r:10, 
+            sc1:'rgba(120,30,60,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)', nc1:'rgba(40,40,40,0.5)',
+            sc2:'rgba(120,30,60,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)', nc2:'rgba(40,40,40,0.8)',
+        },
+        getAll: function () { return _uis; },
+        removeAll: function () { _uis = []; },
+        add: function ( ui ) { _uis.push( ui ); },
+        remove: function ( ui ) { var i = _uis.indexOf( ui ); if ( i !== -1 ) { _uis.splice( i, 1 ); } },
+        create:function(el){
+            for(var i = 0; i<el.c.length; i++){
+                if(i==0) el.c[0].appendChild(el.c[1]);
+                else if(i>1) el.c[1].appendChild(el.c[i]);
+            }
+        },
+        bgcolor: function(p){
+            var color = this.nset.nc2;
+            if(p){
+                switch(p){
+                    case 'S': color = this.nset.sc2; break;
+                    case 'E': color = this.nset.fc2; break;
+                    case 'T': color = this.nset.tc2; break;
+                }
+            }
+            return color;
+        },
+        clear: function(el){
+            var i = el.c.length, j;
+            while(i--){
+                if(i>1){ 
+                    // clear function
+                    j = this.events.length;
+                    while(j--){ if(el.c[i][this.events[j]]!==null) el.c[i][this.events[j]] = null; }
+                    el.c[1].removeChild(el.c[i]);
+                }
+                else if(i==1) el.c[0].removeChild(el.c[1]);
+                el.c[i] = null;
+            }
+            el.c = null;
+            if(el.f){
+                i = el.f.length;
+                while(i--) el.f[i] = null;
+                el.f = null
+            }
+            if(el.callback)el.callback = null;
+            if(el.value)el.value = null;
+        },
+        element:function(cName, type, css){ 
+            type = type || 'div'; 
+            var el = document.createElement(type); 
+            if(cName) el.className = cName;
+            if(css) el.style.cssText = css; 
+            return el;
+        },
+        createClass:function(name,rules,noAdd){
+            var adds = '.';
+            if(noAdd)adds='';
+            if(name == '*') adds = '';
+            var style = document.createElement('style');
+            style.type = 'text/css';
+            document.getElementsByTagName('head')[0].appendChild(style);
+            if(!(style.sheet||{}).insertRule) (style.styleSheet || style.sheet).addRule(adds+name, rules);
+            else style.sheet.insertRule(adds+name+"{"+rules+"}",0);
+        }
+    };
+})();
 
-UIsr.DocClick = false;
+
 
 
 //--------------------
@@ -22,40 +87,26 @@ UIsr.DocClick = false;
 //--------------------
 
 UIsr.Title = function(target, id, type, prefix ){
-    this.target = target;
+    this.c = [];
 
-    this.content = document.createElement( 'div' );
-    this.content.className = 'UIsr-title';
-    
-    this.t1 = document.createElement('div');
-    this.t1.className = 'UIsr-text';
-    this.t1.style.cssText ='width:200px; font-size:12px;';
-    
-    this.t2 = document.createElement('div');
-    this.t2.className = 'UIsr-text';
-    this.t2.style.cssText ='right:25px; text-align:right; font-size:12px;';
-    
+    this.c[0] = target;
+    this.c[1] = UIsr.element('UIsr-title', 'div', 'background:'+UIsr.bgcolor(prefix)+';' );
+    this.c[2] = UIsr.element('UIsr-text', 'div', 'width:200px; font-size:12px;');
+    this.c[3] = UIsr.element('UIsr-text', 'div', 'right:25px; text-align:right; font-size:12px;');
+
     var idt = id;
     if(id<10) idt = '0'+id;
 
-    this.t1.innerHTML = type.replace("-", " ").toUpperCase();
-    this.t2.innerHTML = prefix.toUpperCase()+' '+idt;
+    this.c[2].innerHTML = type.replace("-", " ").toUpperCase();
+    this.c[3].innerHTML = prefix.toUpperCase()+' '+idt;
 
-    this.content.appendChild(this.t1);
-    this.content.appendChild(this.t2);
-    this.target.appendChild( this.content );
+    UIsr.create(this);
 }
+
 UIsr.Title.prototype = {
     constructor: UIsr.Title,
     clear:function(){
-        this.content.removeChild(this.t1);
-        this.content.removeChild(this.t2);
-        this.target.removeChild( this.content );
-
-        this.t1 = null;
-        this.t2 = null;
-        this.content = null;
-        this.target = null;
+        UIsr.clear(this);
     }
 }
 
@@ -63,57 +114,36 @@ UIsr.Title.prototype = {
 // URL
 //--------------------
 
-UIsr.Url = function(target, name, callback, value ){
-    this.target = target;
+UIsr.Url = function(target, name, callback, value, c ){
 
-    this.mouseDown = false;
     this.callback = callback || function(){};
-    this.content = document.createElement( 'div' );
-    this.content.className = 'UIsr-base';
-    target.appendChild( this.content );
 
-    this.t1 = document.createElement( 'div' );
-    this.t1.className = 'UIsr-text';
-    this.t1.innerHTML = 'URL:';
-    this.content.appendChild( this.t1 );
+    this.c = [];
+    this.f = [];
 
-    this.t2 = document.createElement('input');
-    this.t2.className = 'UIsr-url';
-    this.t2.style.cssText ='width:200px; left:50px; pointer-events:auto;';
-    //this.t2.contentEditable =true;
-    this.t2.value = value;
-    this.content.appendChild(this.t2);
+    this.c[0] = target;
+    this.c[1] = UIsr.element('UIsr-base', 'div', 'background:'+UIsr.bgcolor(c)+';' );
+    this.c[2] = UIsr.element('UIsr-text', 'div', 'width:100px;');
+    this.c[3] = UIsr.element('UIsr-url', 'input', 'width:200px; left:60px;');
 
-    //this.fun =  function(e){ this.callback( this.t2.innerHTML ) }.bind(this);
-    this.fun =  function(e){
+    this.f[0] = function(e){
+        if ( e.keyCode === 13 ){ 
+            this.callback( e.target.value );
+            e.target.blur();
+        }
         e.stopPropagation();
-        this.callback( this.t2.value );
-        if ( e.keyCode === 13 ) e.target.blur();
     }.bind(this);
 
-    this.change =  function(e){
-        this.callback( this.t2.value );
-    }.bind(this);
+    this.c[2].innerHTML = name+ ':';
+    this.c[3].value = value;
+    this.c[3].onkeydown = this.f[0];
 
-    this.t2.addEventListener("keydown", this.fun, false);
-    this.t2.addEventListener("change", this.change, false);
+    UIsr.create(this);
 }
 UIsr.Url.prototype = {
     constructor: UIsr.Url,
     clear:function(){
-        this.t2.removeEventListener("keydown", this.fun, false);
-        this.t2.removeEventListener("change", this.change, false);
-        
-        this.content.removeChild( this.t1 );
-        this.content.removeChild( this.t2 );
-        this.target.removeChild( this.content );
-
-        this.callback = null;
-        this.fun = null;
-        this.t1 = null;
-        this.t2 = null;
-        this.content = null;
-        this.target = null;
+        UIsr.clear(this);
     }
 }
 
@@ -121,56 +151,87 @@ UIsr.Url.prototype = {
 // NUMBER
 //--------------------
 
-UIsr.Number = function(target, name, callback, value, min, max ){
-     this.target = target;
+UIsr.Number = function(target, name, callback, value, min, max, precision, step, isAngle ){
 
-    this.mouseDown = false;
     this.callback = callback || function(){};
-    this.content = document.createElement( 'div' );
-    this.content.className = 'UIsr-base';
-    target.appendChild( this.content );
+    this.min = min || -Infinity;
+    this.max = max || Infinity;
+    this.precision = precision || 0;
+    this.step = step || 1;
+    this.prev = null;
+    this.shiftKey = false;
 
-    this.t1 = document.createElement( 'div' );
-    this.t1.className = 'UIsr-text';
-    this.t1.innerHTML = name+':';
-    this.content.appendChild( this.t1 );
+    this.value = value;
+    this.toRad = 1;
+    if(isAngle){ 
+        this.value = (value * 180 / Math.PI).toFixed( this.precision );
+        this.toRad = Math.PI/180;
+    };
+    
+    this.c = [];
+    this.f = [];
 
-    this.t2 = document.createElement('input');
-    this.t2.className = 'UIsr-number';
-    this.t2.style.cssText ='width:80px; left:100px; pointer-events:auto;  border:none;';
-    this.t2.value = value;
-    this.content.appendChild(this.t2);
+    this.c[0] = target;
+    this.c[1] = UIsr.element('UIsr-base', 'div', 'background:'+UIsr.bgcolor('E')+';' );
+    this.c[2] = UIsr.element('UIsr-text', 'div', 'width:100px;');
+    this.c[3] = UIsr.element('UIsr-number', 'input', 'left:130px;');
+    this.c[4] = UIsr.element('UIsr-boxbb', 'div', 'left:195px;');
+    this.c[5] = UIsr.element('UIsr-big', 'div', 'display:none;');
+    
 
-    this.fun =  function(e){
+    this.f[0] = function(e){
+        if ( e.keyCode === 13 ){ 
+            if(!isNaN(e.target.value)){
+                this.value =  Math.min( this.max, Math.max( this.min, e.target.value ) ).toFixed( this.precision ) ;
+                this.callback( this.value * this.toRad );
+            } else {
+                e.target.value = this.value;
+            }
+            e.target.blur();
+        }
         e.stopPropagation();
-        this.callback( this.t2.value );
-        if ( e.keyCode === 13 ) e.target.blur();
     }.bind(this);
 
-    this.change =  function(e){
-        this.callback( this.t2.value );
+    this.f[1] = function(e){
+        e.preventDefault();
+        this.prev = { x:e.clientX, y:e.clientY, v:parseFloat( this.value ), d:0};
+        this.c[5].style.display = 'block';
+        this.c[5].onmousemove = this.f[2];
+        this.c[5].onmouseup = this.f[3];
+        this.c[5].onmouseout = this.f[3];
     }.bind(this);
 
-    this.t2.addEventListener( 'keydown', this.fun, false );
-    this.t2.addEventListener( 'change', this.change, false );
+    this.f[2] = function(e){
+        this.prev.d += ( e.clientX - this.prev.x ) - ( e.clientY - this.prev.y );
+        var number = this.prev.v + ( this.prev.d * this.step);
+        this.value = Math.min( this.max, Math.max( this.min, number ) ).toFixed( this.precision );
+        this.c[3].value = this.value;
+        this.callback( this.value * this.toRad );
+        this.prev.x = e.clientX;
+        this.prev.y = e.clientY;
+    }.bind(this);
+
+    this.f[3] = function(e){
+        e.preventDefault();
+        this.c[5].style.display = 'none'
+        this.c[5].onmousemove = null;
+        this.c[5].onmouseup = null;
+        this.c[5].onmouseout = null;
+    }.bind(this);
+
+    this.c[2].innerHTML = name+ ':';
+    if(isAngle) this.c[2].innerHTML = name+ '°:';
+    this.c[3].value = this.value;
+    this.c[3].onkeydown = this.f[0];
+    this.c[4].onmousedown = this.f[1];
+    this.c[4].innerHTML ='< >';
+
+    UIsr.create(this);
 }
 UIsr.Number.prototype = {
     constructor: UIsr.Number,
     clear:function(){
-        //this.t2.removeEventListener("input", this.fun, false);
-        this.t2.removeEventListener( 'keydown', this.fun, false );
-        this.t2.removeEventListener( 'change', this.change, false );
-        
-        this.content.removeChild( this.t1 );
-        this.content.removeChild( this.t2 );
-        this.target.removeChild( this.content );
-
-        this.callback = null;
-        this.fun = null;
-        this.t1 = null;
-        this.t2 = null;
-        this.content = null;
-        this.target = null;
+        UIsr.clear(this);
     }
 }
 
@@ -178,68 +239,46 @@ UIsr.Number.prototype = {
 // VECTOR2
 //--------------------
 
-UIsr.V2 = function(target, name, callback, value1, value2 ){
-    this.target = target;
+UIsr.V2 = function(target, name, callback, value ){
 
-    this.mouseDown = false;
     this.callback = callback || function(){};
-    this.content = document.createElement( 'div' );
-    this.content.className = 'UIsr-base';
-    target.appendChild( this.content );
+    this.value = value;
 
-    this.t1 = document.createElement( 'div' );
-    this.t1.className = 'UIsr-text';
-    this.t1.innerHTML = name+':';
-    this.content.appendChild( this.t1 );
+    this.c = [];
+    this.f = [];
 
-    this.t2 = document.createElement('input');
-    this.t2.className = 'UIsr-number';
-    this.t2.style.cssText ='width:60px; left:100px; pointer-events:auto; border:none;';
-    this.t2.value = value1;
-    this.content.appendChild(this.t2);
+    this.c[0] = target;
+    this.c[1] = UIsr.element('UIsr-base', 'div', 'background:'+UIsr.bgcolor('E')+';' );
+    this.c[2] = UIsr.element('UIsr-text', 'div', 'width:100px;');
+    this.c[3] = UIsr.element('UIsr-number', 'input', 'left:100px;');
+    this.c[4] = UIsr.element('UIsr-number', 'input', 'left:170px;');
 
-    this.t3 = document.createElement('input');
-    this.t3.className = 'UIsr-number';
-    this.t3.style.cssText ='width:60px; left:170px; pointer-events:auto; border:none;';
-    this.t3.value = value2;
-    this.content.appendChild(this.t3);
-
-    this.fun =  function(e){
+    this.f[0] = function(e){
+        if ( e.keyCode === 13 ){ 
+            if(!isNaN(this.c[3].value) && !isNaN(this.c[4].value)){
+                this.value = [this.c[3].value, this.c[4].value];
+                this.callback( this.value );
+            } else {
+                this.c[3].value = this.value[0];
+                this.c[4].value = this.value[1];
+            }
+            e.target.blur();
+        }
         e.stopPropagation();
-        this.callback( [this.t2.value, this.t3.value] );
-        if ( e.keyCode === 13 ) e.target.blur();
     }.bind(this);
 
-    this.change =  function(e){
-        this.callback( [this.t2.value, this.t3.value] );
-    }.bind(this);
+    this.c[2].innerHTML = name+ ':';
+    this.c[3].value = this.value[0];
+    this.c[4].value = this.value[1];
+    this.c[3].onkeydown = this.f[0];
+    this.c[4].onkeydown = this.f[0];
 
-    this.t2.addEventListener("keydown", this.fun, false);
-    this.t3.addEventListener("keydown", this.fun, false);
-    this.t2.addEventListener("change", this.change, false);
-    this.t3.addEventListener("change", this.change, false);
-    
+    UIsr.create(this);
 }
 UIsr.V2.prototype = {
     constructor: UIsr.V2,
     clear:function(){
-        this.t2.removeEventListener("keydown", this.fun, false);
-        this.t3.removeEventListener("keydown", this.fun, false);
-        this.t2.removeEventListener("change", this.change, false);
-        this.t3.removeEventListener("change", this.change, false)
-        
-        this.content.removeChild( this.t1 );
-        this.content.removeChild( this.t2 );
-        this.content.removeChild( this.t3 );
-        this.target.removeChild( this.content );
-
-        this.callback = null;
-        this.fun = null;
-        this.t1 = null;
-        this.t2 = null;
-        this.t3 = null;
-        this.content = null;
-        this.target = null;
+        UIsr.clear(this);
     }
 }
 
@@ -248,52 +287,38 @@ UIsr.V2.prototype = {
 //--------------------
 
 UIsr.Bool = function(target, name, callback, value ){
-    this.target = target;
 
+    this.callback = callback || function(){};
     this.value = value;
 
-    this.mouseDown = false;
-    this.callback = callback || function(){};
-    this.content = document.createElement( 'div' );
-    this.content.className = 'UIsr-base';
-    target.appendChild( this.content );
+    this.c = [];
+    this.f = [];
 
-    this.t1 = document.createElement( 'div' );
-    this.t1.className = 'UIsr-text';
-    this.t1.innerHTML = name+':';
-    this.content.appendChild( this.t1 );
+    this.c[0] = target;
+    this.c[1] = UIsr.element('UIsr-base', 'div', 'background:'+UIsr.bgcolor('E')+';' );
+    this.c[2] = UIsr.element('UIsr-text', 'div', 'width:100px;');
+    this.c[3] = UIsr.element('UIsr-box', 'div');
 
-    this.t2 = document.createElement('div');
-    this.t2.className = 'UIsr-box';
-    if(this.value) this.t2.style.background = '#FFF';
-    this.content.appendChild(this.t2);
-
-    this.t2.onclick = function(e){
+    this.f[0] = function(e){
         if(this.value){
             this.value = false;
-            this.t2.style.background = 'none';
+            this.c[3].style.background = 'none';
         } else {
             this.value = true;
-            this.t2.style.background = '#FFF';
+            this.c[3].style.background = '#FFF';
         }
         this.callback( this.value );
     }.bind(this);
+
+    this.c[2].innerHTML = name+ ':';
+    this.c[3].onclick = this.f[0];
+
+    UIsr.create(this);
 }
 UIsr.Bool.prototype = {
     constructor: UIsr.Bool,
     clear:function(){
-        this.t2.onclick = null;
-        
-        this.content.removeChild( this.t1 );
-        this.content.removeChild( this.t2 );
-        this.target.removeChild( this.content );
-
-        this.callback = null;
-        this.fun = null;
-        this.t1 = null;
-        this.t2 = null;
-        this.content = null;
-        this.target = null;
+        UIsr.clear(this);
     }
 }
 
@@ -320,52 +345,40 @@ UIsr.List = function(target, name, callback, value, list ){
     this.bg = null;
     this.pin = null;
 
-    this.init();
+    this.content = UIsr.element('UIsr-base');
+    this.txt = UIsr.element('UIsr-text');
+    this.sel = UIsr.element('UIsr-textList');
+
+    this.target.appendChild( this.content );
+    this.content.appendChild( this.txt );
+    this.content.appendChild( this.sel );
+
+    this.txt.innerHTML = this.name.substring(0,1).toUpperCase()+this.name.substring(1,this.name.length)+':';
+    this.sel.innerHTML = this.value.toUpperCase();
+
+    this.sel.onmousedown=function(e){ this.displayList(); }.bind(this);
 }
 
 UIsr.List.prototype = {
     constructor: UIsr.List,
-    init:function(){
-        this.content = document.createElement( 'div' );
-        this.content.className = 'UIsr-base';
-        this.target.appendChild( this.content );
-
-        this.txt = document.createElement( 'div' );
-        this.txt.className = 'UIsr-text';
-        this.txt.innerHTML = this.name.substring(0,1).toUpperCase()+this.name.substring(1,this.name.length)+':';
-        this.content.appendChild( this.txt );
-
-        this.sel = document.createElement( 'div' );
-        this.sel.className = 'UIsr-textList';
-        this.sel.innerHTML = this.value.toUpperCase();
-        this.content.appendChild( this.sel );
-
-        
-
-        this.sel.onmousedown=function(e){ this.displayList(); }.bind(this);
-
-        /*this.target.onmouseover = function(){
-		   console.log('out over')
-		}*/
-    },
     displayList:function(){
         if(this.lcontent!==null){
             this.lcontent.style.display = 'block';
             this.lcontent.style.zIndex = 1;
         }else{
-            this.lcontent = document.createElement( 'div' );
-            this.lcontent.className = 'UIsr-list';
-            this.content.appendChild(this.lcontent);
 
-            this.lin = document.createElement( 'div' );
-            this.lin.className = 'UIsr-listInner';
+            this.lcontent = UIsr.element('UIsr-list');
+            this.lin = UIsr.element('UIsr-listInner');
+
+            this.content.appendChild(this.lcontent);
             this.lcontent.appendChild(this.lin);
 
             var item, name;
             for(var i=0; i<this.list.length; i++){
                 name = this.list[i];
-                item = document.createElement( 'div' );
-                item.className = 'UIsr-listItem';
+                item = UIsr.element('UIsr-listItem');
+                //item = document.createElement( 'div' );
+                //item.className = 'UIsr-listItem';
                 item.innerHTML = name;//.toUpperCase();
                 item.name = name;
                 this.lin.appendChild(item);
@@ -414,12 +427,10 @@ UIsr.List.prototype = {
         e.stopPropagation();
     },
     addScroll:function(){
-        this.bg = document.createElement( 'div' );
-        this.bg.className = 'UIsr-listScroll';
-        this.lcontent.appendChild(this.bg);
+        this.bg = UIsr.element('UIsr-listScroll');
+        this.pin = UIsr.element('UIsr-listPin');
 
-        this.pin = document.createElement( 'div' );
-        this.pin.className = 'UIsr-listPin';
+        this.lcontent.appendChild(this.bg);
         this.bg.appendChild(this.pin);
 
         this.bg.oncontextmenu = function(e){ e.preventDefault(); }.bind(this);
@@ -547,51 +558,32 @@ UIsr.Slide = function(target, name, callback, value, min, max, precision, type, 
     this.w = this.width-8;
     this.value = value || 0;
     this.mouseDown = false;
-    this.init();
+    //this.init();
+
+    this.content = UIsr.element('UIsr-base');
+    this.txt = UIsr.element('UIsr-text', 'div', 'width:100px;');
+    this.result = UIsr.element('UIsr-text', 'div', 'right:25px; text-align:right; width:40px;');
+    this.bg = UIsr.element('UIsr-scroll-bg', 'div', 'height:'+this.height+'px; width:'+this.width+'px; background:'+this.colors[1]+';');
+    this.sel = UIsr.element('UIsr-scroll-sel', 'div', 'height:'+(this.height-8)+'px; background:'+this.colors[3]+';');
+
+    this.bg.appendChild( this.sel );
+    this.content.appendChild( this.result );
+    this.content.appendChild( this.txt );
+    this.content.appendChild( this.bg );
+    this.target.appendChild( this.content );
+
+    this.txt.innerHTML = this.name.substring(0,1).toUpperCase()+this.name.substring(1,this.name.length)+':';
+
+    this.bg.onmouseover = function(e){ this.over(e); }.bind(this);
+    this.bg.onmouseout = function(e){ this.out(e); }.bind(this);
+    this.bg.onmouseup = function(e){ this.up(e); }.bind(this);
+    this.bg.onmousedown = function(e){ this.down(e); }.bind(this);
+    this.bg.onmousemove = function(e){ this.drag(e); }.bind(this);
+    this.updatePosition();
 };
 
 UIsr.Slide.prototype = {
     constructor: UIsr.Slide,
-    init:function(){
-    	
-        this.content = document.createElement( 'div' );
-        this.content.className = 'UIsr-base';
-        
-        this.txt = document.createElement( 'div' );
-        this.txt.className = 'UIsr-text';
-        this.txt.innerHTML = this.name.substring(0,1).toUpperCase()+this.name.substring(1,this.name.length)+':';
-
-        this.result = document.createElement( 'div' );
-        this.result.className = 'UIsr-text';
-        this.result.style.cssText ='right:25px; text-align:right; width:40px;';
-
-        this.bg = document.createElement( 'div' );
-        this.bg.className = 'UIsr-scroll-bg';
-        this.bg.style.width = this.width+'px';
-        this.bg.style.height = this.height+'px';
-        this.bg.style.background = this.colors[1];
-
-        this.sel = document.createElement( 'div' );
-        this.sel.className = 'UIsr-scroll-sel';
-        this.sel.style.height = (this.height-8)+'px';
-        this.sel.style.background = this.colors[3];
-        
-        this.bg.appendChild( this.sel );
-        this.content.appendChild( this.result );
-        this.content.appendChild( this.txt );
-        this.content.appendChild( this.bg );
-        this.target.appendChild( this.content );
-
-        //bg.oncontextmenu = function(e){ e.preventDefault(); }.bind(this);
-        this.bg.onmouseover = function(e){ this.over(e); }.bind(this);
-        this.bg.onmouseout = function(e){ this.out(e); }.bind(this);
-        this.bg.onmouseup = function(e){ this.up(e); }.bind(this);
-        this.bg.onmousedown = function(e){ this.down(e); }.bind(this);
-        this.bg.onmousemove = function(e){ this.drag(e); }.bind(this);
-        //bg.onmousewheel = function(e) {this.mousewheel(e)}.bind( this );
-
-        this.updatePosition();
-    },
     updatePosition:function(){
         this.sel.style.width = (this.w * ((this.value-this.min)/this.valueRange))+'px';
         this.result.innerHTML = this.value+this.type;
@@ -654,11 +646,20 @@ UIsr.Slide.prototype = {
 //--------------------
 
 UIsr.Color = function(target, name, callback, value ){
-
     this.target = target;
-    this.content = document.createElement( 'div' );
-    this.content.className = 'UIsr-base';
+
     this.width = 170;
+    this.decalLeft = 100;
+
+    this.content = UIsr.element('UIsr-base');
+    this.t1 = UIsr.element('UIsr-text', 'div', 'width:100px;');
+    this.t2 = UIsr.element('UIsr-text', 'div', 'position:absolute; width:'+(this.width)+'px; left:'+this.decalLeft+'px; height:16px; padding-left:10px; font-size:12px; pointer-events:auto; cursor:pointer; font-family:Monospace;');
+    this.c0 = UIsr.element();
+    this.c1 = UIsr.element(null, 'canvas');
+    this.c2 = UIsr.element(null, 'canvas');
+
+
+
     this.wheelWidth = this.width /10;
     this.callback = callback || function(){};
 
@@ -666,25 +667,14 @@ UIsr.Color = function(target, name, callback, value ){
     this.color = null;
     this.dragging = false;
     this.isShow = false;
-    this.decalLeft = 100;
+    
     this.decal = 22;
     this.radius = (this.width - this.wheelWidth) * 0.5 - 1;
     this.square = Math.floor((this.radius - this.wheelWidth * 0.5) * 0.7) - 1;
     this.mid = Math.floor(this.width * 0.5 );
     this.markerSize = this.wheelWidth * 0.3;
 
-    this.t1 = document.createElement( 'div' );
-    this.t1.className = 'UIsr-text';
     this.t1.innerHTML = name+':';
-    
-    
-    this.t2 = document.createElement('div');
-    this.t2.className = 'UIsr-text';
-    this.t2.style.cssText ='position:absolute; width:'+(this.width)+'px; left:'+this.decalLeft+'px; height:16px; padding-left:10px; font-size:12px; pointer-events:auto; cursor:pointer; font-family:Monospace; ';
-
-    this.c0 = document.createElement('div');
-    this.c1 = document.createElement('canvas');
-    this.c2 = document.createElement('canvas');
 
     this.c1.width = this.c1.height = this.width;
     this.c2.width = this.c2.height = this.width;
@@ -984,31 +974,22 @@ UIsr.Color.prototype = {
 // CLASS
 //--------------------
 
-UIsr.createClass = function(name,rules,noAdd){
-    var adds = '.';
-    if(noAdd)adds='';
-    if(name == '*') adds = '';
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    document.getElementsByTagName('head')[0].appendChild(style);
-    if(!(style.sheet||{}).insertRule) (style.styleSheet || style.sheet).addRule(adds+name, rules);
-    else style.sheet.insertRule(adds+name+"{"+rules+"}",0);
-}
-
-/*UIsr.applyClass = function (name,element,doRemove){
-    if(typeof element.valueOf() == "string") element = document.getElementById(element);
-    if(!element) return;
-    if(doRemove) element.className = element.className.replace(new RegExp("\\b"+name+"\\b","g"),"");
-    else element.className = element.className+" "+name;
-}*/
 var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; font-family:Helvetica, Arial, sans-serif; font-size:12px; color:#e2e2e2;';
 UIsr.createClass('UIsr-base', 'width:'+(UIsr.nset.width)+'px; height:20px; position:relative; left:0px; pointer-events:none; background:'+UIsr.nset.fc1+'; margin-bottom:1px;'+str);
 UIsr.createClass('UIsr-title', 'width:'+(UIsr.nset.width)+'px; height:30px; position:relative; left:0px; pointer-events:none; padding-top:5px; margin-bottom:1px;'+str);
 
 UIsr.createClass('UIsr-box', 'position:absolute; left:100px; top:3px; width:14px; height:14px; pointer-events:auto; cursor:pointer; border:2px solid rgba(255,255,255,0.4); '+str);
 UIsr.createClass('UIsr-text', 'position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:10px; padding-left:10px; padding-right:5px; padding-top:2px; text-align:Left;'+str);
-UIsr.createClass('input.UIsr-number', 'position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:5px; padding-top:2px; background:rgba(0,0,0,0.2);'+str, true);
-UIsr.createClass('input.UIsr-url', 'position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; background:rgba(0,0,0,0.2);'+str, true);
+
+UIsr.createClass('input.UIsr-number', 'position:absolute; width:60px; height:16px; pointer-events:auto; margin-top:2px; padding-left:5px; padding-top:2px; background:rgba(0,0,0,0.2);'+str, true);
+UIsr.createClass('input.UIsr-url', 'position:absolute; width:80px; height:16px; pointer-events:auto; margin-top:2px; padding-left:4px; padding-top:2px; background:rgba(0,0,0,0.2);'+str, true);
+
+UIsr.createClass('UIsr-boxbb', 'position:absolute; left:100px; top:3px; width:20px; height:14px; pointer-events:auto; cursor:col-resize; text-align:center; color:#000; font-size:12px; background:rgba(255,255,255,0.6); ');
+
+UIsr.createClass('UIsr-big', 'position:absolute; width:400px; height:100px; left:-100px; top:-50px; pointer-events:auto; cursor:col-resize; border:1px solid #f00; background:rgba(0,0,0,0);'+str);
+//UIsr.createClass('UIsr-url', 'position:absolute; width:80px; height:16px; pointer-events:none; margin-top:2px; padding-left:4px; padding-top:2px; background:rgba(0,0,0,0.2);white-space: nowrap;'+str);
+//UIsr.createClass('UIsr-url br', 'display:none;');
+
 UIsr.createClass('UIsr-textList', 'border:1px solid '+UIsr.nset.fc1+'; background:'+UIsr.nset.fc2+'; left:100px; font-size:12px; position:absolute; cursor:pointer; width:170px; height:16px; pointer-events:auto; margin-top:2px; text-align:center;'+str);
 UIsr.createClass('UIsr-textList:hover', 'border:1px solid #FFF;'+str);
 UIsr.createClass('UIsr-list', 'border:1px solid #FFF; position:absolute; left:100px; top:17px; width:170px; height:80px; background:#000; overflow:hidden; pointer-events:none; '+str);
@@ -1020,3 +1001,14 @@ UIsr.createClass('UIsr-listPin', 'position:absolute; right:1px; background:#0F0;
 
 UIsr.createClass('UIsr-scroll-bg', 'position:absolute; left:100px; top:2px; cursor:w-resize; pointer-events:auto;'+str);
 UIsr.createClass('UIsr-scroll-sel', 'position:absolute; pointer-events:none; left:4px; top:4px;'+str);
+
+// UMD (Universal Module Definition)
+( function ( root ) {
+    if ( typeof define === 'function' && define.amd ) {// AMD
+        define( [], function () { return UIsr; } );
+    } else if ( typeof exports === 'object' ) { // Node.js
+        module.exports = UIsr;
+    } else {// Global variable
+        root.UIsr = UIsr;
+    }
+})(this);

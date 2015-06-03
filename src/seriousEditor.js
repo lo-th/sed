@@ -547,9 +547,9 @@ Serious.Editor.prototype = {
             case 'video':
                 prefix = 'S';
                 node = document.createElement('video');
-                node.autoPlay = true;
-                node.loop = true;
-                node.play();
+                //node.autoPlay = true;
+                //node.loop = true;
+                //node.play();
             break;
             case 'image':
                 prefix = 'S'; 
@@ -730,6 +730,7 @@ Serious.Editor.prototype = {
                 inner = true; outer = true;
                 if(type=='blend' || type=='split') inner2 = true;
                 if(type=='filter') outer2 = true;
+                if(type=='checkerboard') inner = false;
             break;
             case 'T':
                 inner = true;
@@ -889,7 +890,8 @@ Serious.Editor.prototype = {
         this.addTitle(id, type, prefix );
 
         switch(type){
-            case 'image':case 'video': this.addURL(id); break;
+            case 'image': this.addURL(id); break;
+            case 'video': this.addVideoURL(id); break;
             case 'texture-3D': this.addTextureLink(id); break;
             case 'accumulator':
                 this.addSlide(id, 'opacity', 0, 1, 2);
@@ -918,8 +920,8 @@ Serious.Editor.prototype = {
                 this.addV2(id, 'size');
                 this.addColor(id, 'color1');
                 this.addColor(id, 'color2');
-                this.addNumber(id, 'width');
-                this.addNumber(id, 'height');
+                this.addNumber(id, 'width', 0, 2000, 0, 1);
+                this.addNumber(id, 'height', 0, 2000, 0, 1);
             break;
             case 'chroma':
                 this.addColor(id, 'screen');
@@ -967,7 +969,7 @@ Serious.Editor.prototype = {
             case 'daltonize': this.addList(id, 'type', ['0.0', '0.2', '0.6', '0.8']); break;
             case 'directionblur':
                 this.addSlide(id, 'amount', 0, 1, 2);
-                this.addSlide(id, 'angle', 0, 360, 0);
+                this.addNumber(id, 'angle', 0, 360, 0, 1, true);
             break;
             case 'displacement':
                 /// ? //// 
@@ -1062,7 +1064,7 @@ Serious.Editor.prototype = {
             case 'pixelate':
                 this.addV2(id, 'pixelSize', 0);
             break;
-            case 'polar': this.addSlide(id, 'angle', 0, 360, 0); break;
+            case 'polar': this.addSlide(id, 'angle', 0, 360, 0, 1, true); break;
             case 'repeat':
                 this.addNumber(id, 'repeat', 0, 1);
                 this.addNumber(id, 'width', 0, 1);
@@ -1100,11 +1102,11 @@ Serious.Editor.prototype = {
             case 'split':
                 this.addList(id, 'sizeMode', ['a', 'b', 'union', 'intersection']);
                 this.addSlide(id, 'split', 0, 1, 2);
-                this.addNumber(id, 'angle');
+                this.addNumber(id, 'angle', 0, 360, 0, 1, true);
                 this.addSlide(id, 'fuzzy', 0, 1, 2);
             break;
             case 'throttle':
-                this.addNumber(id, 'opacity', 0);
+                this.addNumber(id, 'frameRate', 0);
             break;
             case 'tone':
                 this.addColor(id, 'light');
@@ -1155,61 +1157,79 @@ Serious.Editor.prototype = {
     addTitle:function(id, type, prefix){
         prefix = prefix || '';
         var s = new UIsr.Title(this.bmenu, id, type, prefix);
-        if(prefix){
-            switch(prefix){
-                case 'S': s.content.style.background = this.nset.sc2; break;
-                case 'E': s.content.style.background = this.nset.fc2; break;
-                case 'T': s.content.style.background = this.nset.tc2; break;
-            }
-        }else{
-            s.content.style.background = this.nset.nc2;
-        }
-        
         this.sels.push(s);
     },
     addString:function(id, name){
-        var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
+        var node = this.tmp[this.LAYER].nodes[id];
+        var callback = function(v){ node.node[name] = v; }.bind(this);
         //this.sels.push(new UIsr.Number(this.menu, name, callback, this.nodes[id][name]));
     },
-    addNumber:function(id, name, min, step){
-        var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        this.sels.push(new UIsr.Number(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]));
+    addNumber:function(id, name, min, max, precision, step, isAngle){
+        var node = this.tmp[this.LAYER].nodes[id];
+        var callback = function(v){ node.node[name] = v; }.bind(this);
+        this.sels.push(new UIsr.Number(this.bmenu, name, callback, node.node[name], min, max, precision, step, isAngle));
     },
-    addV2:function(id, name, min){
-        var callback = function(ar){ this.tmp[this.LAYER].nodes[id].node[name]=ar;}.bind(this);
-        this.sels.push( new UIsr.V2(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name][0], this.tmp[this.LAYER].nodes[id].node[name][1]) );
+    addV2:function(id, name, min, max, precision, step){
+        var node = this.tmp[this.LAYER].nodes[id];
+        var callback = function(ar){ node.node[name]=ar;}.bind(this);
+        this.sels.push( new UIsr.V2(this.bmenu, name, callback, node.node[name] ) );
     },
     addColor:function(id, name){
         var callback = function(ar){ this.tmp[this.LAYER].nodes[id].node[name] = ar; }.bind(this);
         this.sels.push( new UIsr.Color(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]) );
     },
     addBool:function(id, name){
-        var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        this.sels.push( new UIsr.Bool(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]) );
+        var node = this.tmp[this.LAYER].nodes[id];
+        var callback = function(v){ node.node[name] = v; }.bind(this);
+        this.sels.push( new UIsr.Bool(this.bmenu, name, callback, node.node[name]) );
     },  
     addList:function(id, name, list){
-        var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        this.sels.push( new UIsr.List(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name], list) );
+        var node = this.tmp[this.LAYER].nodes[id];
+        var callback = function(v){ node.node[name] = v; }.bind(this);
+        this.sels.push( new UIsr.List(this.bmenu, name, callback, node.node[name], list) );
     },
-    addSlide:function(id, name, min, max, precision){
-        var callback = function(v){ this.tmp[this.LAYER].nodes[id].node[name] = v; }.bind(this);
-        this.sels.push( new UIsr.Slide(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name], min, max, precision));
+    addSlide:function(id, name, min, max, precision, step){
+        var node = this.tmp[this.LAYER].nodes[id];
+        var callback = function(v){ node.node[name] = v; }.bind(this);
+        this.sels.push( new UIsr.Slide(this.bmenu, name, callback, node.node[name], min, max, precision, step));
     },
     addURL:function(id){
-        var name = 'src';
+        var name = 'URL';
         var node = this.tmp[this.LAYER].nodes[id];
         var callback = function(v){  node.obj.src = v; node.node.src = v; }.bind(this);
-        var s = new UIsr.Url(this.bmenu, name, callback, node.obj.src );
-        s.content.style.background = this.nset.sc1;
+        var s = new UIsr.Url(this.bmenu, name, callback, node.obj.src, 'S' );
+        this.sels.push( s );
+    },
+    addVideoURL:function(id){
+        var name = 'URL';
+        var node = this.tmp[this.LAYER].nodes[id];
+        var callback = function(v){
+             node.obj.src = v;
+
+            if(v.substring(0,3)=='YT:' || v.substring(0,3)=='yt:' ){ 
+                var stream = "http://youtube-download.bl.ee/getvideo.mp4?videoid="+v.substring(3);
+                if (window.webkitURL) {
+                    node.node.src = window.webkitURL.createObjectURL(stream);
+                } else {
+                    node.node.src = stream;
+                }
+                //node.node.src = //"http://youtube-download.bl.ee/getvideo.php?videoid="+v.substring(3)+"&type=redirect";
+                node.node.load();
+                node.node.autoPlay = true;
+                node.node.play();
+            }else{
+               // node.obj.src = v;
+                node.node.src = v; 
+            }
+        }.bind(this);
+        var s = new UIsr.Url(this.bmenu, name, callback, node.obj.src , 'S');
         this.sels.push( s );
     },
     addTextureLink:function(id){ //this.textures[obj.texture]
-        var name = 'texture';
+        var name = 'Texture';
         var node = this.tmp[this.LAYER].nodes[id];
-
-        var callback = function(v){ node.obj.texture = v; this.tmp[this.LAYER].nodes[id].node.texture = this.textures[v]; }.bind(this);
-        var s = new UIsr.Url(this.bmenu, name, callback, node.obj.texture );
-        s.content.style.background = this.nset.tc1;
+        var callback = function(v){ console.log(v, node); node.obj.texture = v; node.node.destroy(); node.node = this.seriously.target(this.textures[v]); this.updateLink(); this.applyLinks(); }.bind(this);
+        var s = new UIsr.Url(this.bmenu, name, callback, node.obj.texture, 'T' );
         this.sels.push( s );
     },
 

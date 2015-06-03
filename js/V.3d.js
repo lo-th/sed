@@ -105,7 +105,7 @@ V.View.prototype = {
         this.nav.camera.updateProjectionMatrix();
     },
     addSeriousTexture:function(w,h){
-        var texture = new THREE.WebGLRenderTarget( w || 512,h || 512, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, depthBuffer:false, stencilBuffer:false, anisotropy:1 } );
+        var texture = new THREE.WebGLRenderTarget( w || 512,h || 512, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat} );//, depthBuffer:false, stencilBuffer:false, anisotropy:1 } );
         texture.generateMipmaps = false;
         //texture.needsUpdate = true;
         this.seriousTextures.push(texture);
@@ -114,7 +114,7 @@ V.View.prototype = {
     addPlane:function(map, w,h ){
         var geo = new THREE.PlaneBufferGeometry(w || 10,h || 10);
         var mat 
-        if(map) mat = new THREE.MeshBasicMaterial( { map:map });
+        if(map) mat = new THREE.MeshBasicMaterial( { map:map, transparent:true });
         else mat = new THREE.MeshBasicMaterial( { color:0X00FF00 });
         var mesh = new THREE.Mesh(geo, mat);
         v.scene.add(mesh);
