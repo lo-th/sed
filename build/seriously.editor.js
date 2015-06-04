@@ -16549,7 +16549,7 @@ var UIsr = UIsr || ( function () {
     var _uis = [];
     return {
         REVISION: '1',
-        events:[ 'onkeyup', 'onkeydown', 'onmouseover', 'onmouseout', 'onclick', 'onchange' ],
+        events:[ 'onkeyup', 'onkeydown', 'onclick', 'onchange', 'onmouseover', 'onmouseout', 'onmousemove', 'onmousedown', 'onmouseup' ],
         nset:{
             width:300 , height:262, w:40, h:40, r:10, 
             sc1:'rgba(120,30,60,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)', nc1:'rgba(40,40,40,0.5)',
@@ -16576,33 +16576,33 @@ var UIsr = UIsr || ( function () {
             }
             return color;
         },
-        clear: function(el){
-            var i = el.c.length, j;
+        clear: function(dom){
+            var i = dom.c.length, j;
             while(i--){
                 if(i>1){ 
                     // clear function
                     j = this.events.length;
-                    while(j--){ if(el.c[i][this.events[j]]!==null) el.c[i][this.events[j]] = null; }
-                    el.c[1].removeChild(el.c[i]);
+                    while(j--){ if(dom.c[i][this.events[j]]!==null) dom.c[i][this.events[j]] = null; }
+                    dom.c[1].removeChild(dom.c[i]);
                 }
-                else if(i==1) el.c[0].removeChild(el.c[1]);
-                el.c[i] = null;
+                else if(i==1) dom.c[0].removeChild(dom.c[1]);
+                dom.c[i] = null;
             }
-            el.c = null;
-            if(el.f){
-                i = el.f.length;
-                while(i--) el.f[i] = null;
-                el.f = null
+            dom.c = null;
+            if(dom.f){
+                i = dom.f.length;
+                while(i--) dom.f[i] = null;
+                dom.f = null
             }
-            if(el.callback)el.callback = null;
-            if(el.value)el.value = null;
+            if(dom.callback)dom.callback = null;
+            if(dom.value)dom.value = null;
         },
         element:function(cName, type, css){ 
             type = type || 'div'; 
-            var el = document.createElement(type); 
-            if(cName) el.className = cName;
-            if(css) el.style.cssText = css; 
-            return el;
+            var dom = document.createElement(type); 
+            if(cName) dom.className = cName;
+            if(css) dom.style.cssText = css; 
+            return dom;
         },
         createClass:function(name,rules,noAdd){
             var adds = '.';
@@ -16665,6 +16665,7 @@ UIsr.Url = function(target, name, callback, value, c ){
     this.c[3] = UIsr.element('UIsr-url', 'input', 'width:200px; left:60px;');
 
     this.f[0] = function(e){
+        if (!e) e = window.event;
         if ( e.keyCode === 13 ){ 
             this.callback( e.target.value );
             e.target.blur();
@@ -16672,7 +16673,7 @@ UIsr.Url = function(target, name, callback, value, c ){
         e.stopPropagation();
     }.bind(this);
 
-    this.c[2].innerHTML = name+ ':';
+    this.c[2].innerHTML = name;
     this.c[3].value = value;
     this.c[3].onkeydown = this.f[0];
 
@@ -16692,7 +16693,7 @@ UIsr.Url.prototype = {
 UIsr.Number = function(target, name, callback, value, min, max, precision, step, isAngle ){
 
     this.callback = callback || function(){};
-    this.min = min || -Infinity;
+    this.min = min || 0;//-Infinity;
     this.max = max || Infinity;
     this.precision = precision || 0;
     this.step = step || 1;
@@ -16718,6 +16719,7 @@ UIsr.Number = function(target, name, callback, value, min, max, precision, step,
     
 
     this.f[0] = function(e){
+        if (!e) e = window.event;
         if ( e.keyCode === 13 ){ 
             if(!isNaN(e.target.value)){
                 this.value =  Math.min( this.max, Math.max( this.min, e.target.value ) ).toFixed( this.precision ) ;
@@ -16731,6 +16733,7 @@ UIsr.Number = function(target, name, callback, value, min, max, precision, step,
     }.bind(this);
 
     this.f[1] = function(e){
+        if (!e) e = window.event;
         e.preventDefault();
         this.prev = { x:e.clientX, y:e.clientY, v:parseFloat( this.value ), d:0};
         this.c[5].style.display = 'block';
@@ -16740,6 +16743,7 @@ UIsr.Number = function(target, name, callback, value, min, max, precision, step,
     }.bind(this);
 
     this.f[2] = function(e){
+        if (!e) e = window.event;
         this.prev.d += ( e.clientX - this.prev.x ) - ( e.clientY - this.prev.y );
         var number = this.prev.v + ( this.prev.d * this.step);
         this.value = Math.min( this.max, Math.max( this.min, number ) ).toFixed( this.precision );
@@ -16750,6 +16754,7 @@ UIsr.Number = function(target, name, callback, value, min, max, precision, step,
     }.bind(this);
 
     this.f[3] = function(e){
+        if (!e) e = window.event;
         e.preventDefault();
         this.c[5].style.display = 'none'
         this.c[5].onmousemove = null;
@@ -16757,8 +16762,8 @@ UIsr.Number = function(target, name, callback, value, min, max, precision, step,
         this.c[5].onmouseout = null;
     }.bind(this);
 
-    this.c[2].innerHTML = name+ ':';
-    if(isAngle) this.c[2].innerHTML = name+ '°:';
+    this.c[2].innerHTML = name;
+    if(isAngle) this.c[2].innerHTML = name+ '°';
     this.c[3].value = this.value;
     this.c[3].onkeydown = this.f[0];
     this.c[4].onmousedown = this.f[1];
@@ -16805,7 +16810,7 @@ UIsr.V2 = function(target, name, callback, value ){
         e.stopPropagation();
     }.bind(this);
 
-    this.c[2].innerHTML = name+ ':';
+    this.c[2].innerHTML = name;
     this.c[3].value = this.value[0];
     this.c[4].value = this.value[1];
     this.c[3].onkeydown = this.f[0];
@@ -16848,7 +16853,7 @@ UIsr.Bool = function(target, name, callback, value ){
         this.callback( this.value );
     }.bind(this);
 
-    this.c[2].innerHTML = name+ ':';
+    this.c[2].innerHTML = name;
     this.c[3].onclick = this.f[0];
 
     UIsr.create(this);
@@ -16869,8 +16874,9 @@ UIsr.List = function(target, name, callback, value, list ){
 
     this.colors = ['rgba(220,220,220,1)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.6)', 'rgba(200,200,200,0.6)', 'rgba(200,200,200,1)'];
     this.list = list || [];
-    this.name = name || "list";
-    this.value = value;
+    //this.name = name || "list";
+    if(!isNaN(value)) this.value = list[value];
+    else this.value = value;
     this.callback = callback || function(){};
     this.lcontent = null;
     this.mouseDown = false;
@@ -16891,7 +16897,7 @@ UIsr.List = function(target, name, callback, value, list ){
     this.content.appendChild( this.txt );
     this.content.appendChild( this.sel );
 
-    this.txt.innerHTML = this.name.substring(0,1).toUpperCase()+this.name.substring(1,this.name.length)+':';
+    this.txt.innerHTML = name;//this.name.substring(0,1).toUpperCase()+this.name.substring(1,this.name.length)+':';
     this.sel.innerHTML = this.value.toUpperCase();
 
     this.sel.onmousedown=function(e){ this.displayList(); }.bind(this);
@@ -17086,7 +17092,7 @@ UIsr.Slide = function(target, name, callback, value, min, max, precision, type, 
     this.precision = precision || 0;
     this.min = min || 0;
     this.max = max || 100;
-    this.name = name || "slider";
+    //this.name = name || "slider";
     this.type = type || '';
     this.valueRange = this.max - this.min;
     this.set = set || [10,100,180,10];
@@ -17110,7 +17116,7 @@ UIsr.Slide = function(target, name, callback, value, min, max, precision, type, 
     this.content.appendChild( this.bg );
     this.target.appendChild( this.content );
 
-    this.txt.innerHTML = this.name.substring(0,1).toUpperCase()+this.name.substring(1,this.name.length)+':';
+    this.txt.innerHTML = name;//this.name.substring(0,1).toUpperCase()+this.name.substring(1);
 
     this.bg.onmouseover = function(e){ this.over(e); }.bind(this);
     this.bg.onmouseout = function(e){ this.out(e); }.bind(this);
@@ -17559,7 +17565,7 @@ UIsr.createClass('UIsr-scroll-sel', 'position:absolute; pointer-events:none; lef
 
 'use strict';
 var Seriously;
-var Serious = { version:0.6 };
+var Serious = { version:0.7 };
 
 Serious.Sources = [ 'image', 'video', 'camera', 'scene', 'texture' ];
 
@@ -17673,11 +17679,12 @@ Serious.Editor.prototype = {
     render:function(){
         this.seriously.render();
     },
-    element:function(className, type){
+    element:function(className, type, css){
         type = type || 'div';
-        var el = document.createElement(type);
-        if(className) el.className = className;
-        return el;
+        var dom = document.createElement(type);
+        if(className) dom.className = className;
+        if(css) dom.style.cssText = css;
+        return dom;
     },
     init:function(){
         var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; font-family:Helvetica, Arial, sans-serif; font-size:12px; color:#e2e2e2;';
@@ -17731,9 +17738,9 @@ Serious.Editor.prototype = {
         Serious.createClass('hidden', 'opacity: 0; -moz-opacity: 0; filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0)');
         Serious.createClass('fileInput', 'cursor:pointer; height: 100%; position:absolute; top: 0; right: 0; font-size:50px;');
 
-        Serious.createClass('mini-button', 'width:20px; height:20px; position:relative; margin:5px; display:inline-block; background:#0F0; border:1px solid rgba(0,0,0,0); pointer-events:auto; cursor:pointer; border-radius:3px; overflow: hidden;');
-        Serious.createClass('mini-button:hover', 'border:1px solid #e2e2e2;');
-        Serious.createClass('mini-button-inner', 'position:absolute; left:-5px; top:-5px; pointer-events:none;')
+        Serious.createClass('mini-button', 'width:30px; height:30px; position:relative; margin-top:-3px; display:inline-block; background:#0F0; border:2px solid #282828; pointer-events:auto; cursor:pointer; border-radius:3px; overflow: hidden;'+ str);
+        Serious.createClass('mini-button:hover', 'border:2px solid #e2e2e2;');
+        Serious.createClass('mini-button-inner', 'position:absolute; left:-2px; top:-2px; pointer-events:none;');
 
         this.content = this.element('S-editor');
         this.content.name = 'root';
@@ -17817,7 +17824,7 @@ Serious.Editor.prototype = {
     // OPEN
 
     open:function(){
-        this.current= 'open'
+        this.current= 'open';
         this.content.style.width = this.size.x + 'px';
         this.content.style.height = this.size.y + 'px';
         this.content.style.right = '0px';
@@ -18020,23 +18027,22 @@ Serious.Editor.prototype = {
             }
         }
 
-        var bb = [];
+        var bb = [], name;
         for(i=0; i<Serious.Sources.length; i++){
-            b = this.element('mini-button');
+            b = this.element('mini-button', 'div', 'background:'+this.nset.sc1+';');
             b.name = Serious.Sources[i];
-            b.style.background = this.nset.sc1;
             bb.push(b);
         }
         for(i=0; i<Serious.Effects.length; i++){
-            b = this.element('mini-button');
-            b.name = Serious.Effects[i];
-            b.style.background = this.nset.fc1;
+            name = Serious.Effects[i];
+            if(name == 'colorcube' || name == 'channels' || name == 'layer' || name == 'select') b = this.element('mini-button', 'div', 'background:'+this.nset.nc1+';');
+            else b = this.element('mini-button', 'div', 'background:'+this.nset.fc1+';');
+            b.name = name;
             bb.push(b);
         }
         for(i=0; i<Serious.Targets.length; i++){
-            b = this.element('mini-button');
+            b = this.element('mini-button', 'div', 'background:'+this.nset.tc1+';');
             b.name = Serious.Targets[i];
-            b.style.background = this.nset.tc1;
             bb.push(b);
         }
 
@@ -18047,8 +18053,8 @@ Serious.Editor.prototype = {
             b.appendChild(c);
             this.amenu.appendChild(b);
             b.onmousedown = function(e) { this.addItem(e.target.name); }.bind(this);
-            b.onmouseover = function(e) { this.tell('+ ' + e.target.name); }.bind(this);
-            b.onmouseout = function(e) {  this.tell(); }.bind(this);
+            b.onmouseover = function(e) { this.tell('+ ' + e.target.name.substr(0,1).toUpperCase() + e.target.name.substr(1) ); }.bind(this);
+            b.onmouseout =  function(e) { this.tell(); }.bind(this);
         }
 
     },
@@ -18280,9 +18286,9 @@ Serious.Editor.prototype = {
             break;
             case 'E':
                 inner = true; outer = true;
-                if(type=='blend' || type=='split') inner2 = true;
+                if(type=='blend' || type=='split' || type=='displacement') inner2 = true;
                 if(type=='filter') outer2 = true;
-                if(type=='checkerboard') inner = false;
+                if(type=='checkerboard' || type=='color' || type=='select') inner = false;
             break;
             case 'T':
                 inner = true;
@@ -18291,7 +18297,7 @@ Serious.Editor.prototype = {
 
         if(inner){
             inn = this.element('S-in');
-            if(type=='blend' || type=='split') inn.name = 'I1_'+id+'.'+type;
+            if(type=='blend' || type=='split' || type=='displacement') inn.name = 'I1_'+id+'.'+type;
             else inn.name = 'I0_'+id+'.'+type;
             node.appendChild(inn);
         }
@@ -18465,7 +18471,11 @@ Serious.Editor.prototype = {
                 this.addSlide(id, 'contrast', 0, 1, 2);
             break;
             case 'channels':
-                /// ? ////
+                /// ? //// +  4 sources redSource greenSource blueSource alphaSource
+                this.addList(id, 'red', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);
+                this.addList(id, 'green', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);
+                this.addList(id, 'blue', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);
+                this.addList(id, 'alpha', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);
             break;
             case 'checkerboard':
                 this.addV2(id, 'anchor');
@@ -18483,7 +18493,7 @@ Serious.Editor.prototype = {
                 this.addSlide(id, 'clipWhite', 0, 1, 2);
                 this.addBool(id, 'mask');
             break;
-            case 'color':// no source
+            case 'color':
                 this.addColor(id, 'color');
                 this.addNumber(id, 'width');
                 this.addNumber(id, 'height');
@@ -18524,7 +18534,13 @@ Serious.Editor.prototype = {
                 this.addNumber(id, 'angle', 0, 360, 0, 1, true);
             break;
             case 'displacement':
-                /// ? //// 
+                this.addList(id, 'xChannel', ['red', 'green', 'blue', 'alpha', 'luma', 'lightness', 'none' ]);
+                this.addList(id, 'yChannel', ['red', 'green', 'blue', 'alpha', 'luma', 'lightness', 'none' ]);
+                this.addList(id, 'fillMode', ['color', 'wrap', 'clamp', 'ignore' ]);
+                this.addColor(id, 'color');
+                this.addNumber(id, 'offset', 0, 10, 2, 0.01);
+                this.addV2(id, 'mapScale');
+                this.addSlide(id, 'amount', 0, 1, 2);
             break;
             case 'dither': break;
             case 'edge': this.addList(id, 'mode', ['sobel', 'frei-chen']); break;
@@ -18586,8 +18602,8 @@ Serious.Editor.prototype = {
                 /// ? ////
             break;
             case 'linear-transfer':
-                //this.addV4(id, 'slope');
-                //this.addV4(id, 'intercept');
+                this.addV4(id, 'slope');
+                this.addV4(id, 'intercept');
             break;
             case 'lumakey':
                 this.addSlide(id, 'clipBlack', 0, 1, 2);
@@ -18725,6 +18741,8 @@ Serious.Editor.prototype = {
         var node = this.tmp[this.LAYER].nodes[id];
         var callback = function(ar){ node.node[name]=ar;}.bind(this);
         this.sels.push( new UIsr.V2(this.bmenu, name, callback, node.node[name] ) );
+    },
+    addV4:function(id, name, min, max, precision, step){
     },
     addColor:function(id, name){
         var callback = function(ar){ this.tmp[this.LAYER].nodes[id].node[name] = ar; }.bind(this);
@@ -18982,10 +19000,12 @@ Serious.Link.prototype = {
 
         if(this.obj.sourceN == 0) sourceNode.node.source = targetNode.node;
         if(this.obj.sourceN == 1){ 
+            if(type=='displacement') sourceNode.node.source = targetNode.node;
             if(type=='blend') sourceNode.node.bottom = targetNode.node;
             if(type=='split') sourceNode.node.sourceA = targetNode.node;
         }
         if(this.obj.sourceN == 2){ 
+            if(type=='displacement') sourceNode.node.map = targetNode.node;  
             if(type=='blend') sourceNode.node.top = targetNode.node;  
             if(type=='split') sourceNode.node.sourceB = targetNode.node;
         }
