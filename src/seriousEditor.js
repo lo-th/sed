@@ -1209,7 +1209,7 @@ Serious.Editor.prototype = {
         var name = 'URL';
         var node = this.tmp[this.LAYER].nodes[id];
         var callback = function(v){  node.obj.src = v; node.node.src = v; }.bind(this);
-        var s = new UIL.Url(this.bmenu, name, callback, node.obj.src, 'S' );
+        var s = new UIL.String(this.bmenu, name, callback, node.obj.src, 'S' );
         this.sels.push( s );
     },
     addVideoURL:function(id){
