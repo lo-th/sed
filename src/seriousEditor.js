@@ -6,7 +6,7 @@
 */
 
 'use strict';
-var Seriously;
+var Seriously, UIL;
 var Serious = { version:0.7 };
 
 Serious.Sources = [ 'image', 'video', 'camera', 'scene', 'texture' ];
@@ -167,12 +167,12 @@ Serious.Editor.prototype = {
         Serious.createClass('S-sideButton-select:hover', 'background:#404040;');
         Serious.createClass('sideselect', ' background:#1a1a1a; color:#F0F; height:22px; border-right:1px solid #000;');
 
-        Serious.createClass('root-button', 'position:absolute; left:10px; top:20px; width:26px; height:26px; border:1px solid #333; pointer-events:auto; cursor:pointer; overflow: hidden;'+ str);
+        Serious.createClass('root-button', 'position:absolute; left:10px; top:0px; width:26px; height:26px; border:1px solid #333; pointer-events:auto; cursor:pointer; overflow: hidden;'+ str);
         Serious.createClass('root-button-inner', 'position:absolute; left:-8px; top:-8px; pointer-events:none;')
         Serious.createClass('root-button:hover', 'background:#F0F;');
         Serious.createClass('root-button.select', 'background:#808;');
 
-        Serious.createClass('root-text', 'position:absolute; left:0px; top:0px; width:300px; height:20px; pointer-events:none; padding-left:10px; '+ str);
+        Serious.createClass('root-text', 'position:absolute; left:10px; top:28px; width:280px; height:18px; pointer-events:none; padding-top:2px; padding-left:10px; background:rgba(0,0,0,0.2);'+ str);
 
 
         Serious.createClass('saveout', 'pointer-events:auto; cursor: pointer; width:90px; height:20px; position:absolute; top:6px; left: 132px; color:#F80; text-decoration:none;');
@@ -417,22 +417,21 @@ Serious.Editor.prototype = {
         this.rText = this.element('root-text');
         this.rmenu.appendChild(this.rText);
 
-        this.addB = this.element('root-button');
+        this.addB = this.element('root-button', 'div');
+        this.loadB = this.element('root-button', 'div', 'left:40px');
+        this.saveB = this.element('root-button', 'div', 'left:70px');
+
         this.rmenu.appendChild(this.addB);
+        this.rmenu.appendChild(this.saveB);
+        this.rmenu.appendChild(this.loadB);
+
         this.addB.onclick = function(e) { this.showAddMenu(); }.bind(this);
         this.addB.onmouseover = function(e) { if(this.isAddMenu)this.tell('hide add menu'); else this.tell('show add menu'); }.bind(this);
         this.addB.onmouseout = function(e) {  this.tell(); }.bind(this);
 
-        this.saveB = this.element('root-button');
-        this.saveB.style.left = '100px';
-        this.rmenu.appendChild(this.saveB);
         this.saveB.onclick = function(e) { this.save(); }.bind(this);
         this.saveB.onmouseover = function(e) { this.tell('save to json'); }.bind(this);
         this.saveB.onmouseout = function(e) {  this.tell(); }.bind(this);
-
-        this.loadB = this.element('root-button');
-        this.loadB.style.left = '55px';
-        this.rmenu.appendChild(this.loadB);
 
         this.loader = this.element('fileInput hidden', 'input');
         this.loader.type = "file";
@@ -768,11 +767,10 @@ Serious.Editor.prototype = {
         }
     },
 
-    //----------------------------------
+
+    //-----------------------------------------------------------
 
     // LINK
-
-    //----------------------------------
 
     addLink:function(target, source, st, sn, layer){
         if(isNaN(target)) target = this.getIDByN(target);
@@ -848,6 +846,7 @@ Serious.Editor.prototype = {
         i = rem.length;
         while(i--) this.removeLink(rem[i]);
     },
+
 
     //-----------------------------------------------------------
 
@@ -1154,10 +1153,10 @@ Serious.Editor.prototype = {
         }
     },
 
-    // FROM UIsr
+    // FROM UIL
     addOption:function(id, name, list){
         var callback = function(v){  }.bind(this);
-        this.sels.push( new UIsr.List(this.bmenu, name, callback, name, list) );
+        this.sels.push( new UIL.List(this.bmenu, name, callback, name, list) );
     },
 
     addImage:function(id, name){
@@ -1166,50 +1165,51 @@ Serious.Editor.prototype = {
 
     addTitle:function(id, type, prefix){
         prefix = prefix || '';
-        var s = new UIsr.Title(this.bmenu, id, type, prefix);
+        var s = new UIL.Title( this.bmenu, type, id, prefix );
         this.sels.push(s);
     },
     addString:function(id, name){
         var node = this.tmp[this.LAYER].nodes[id];
         var callback = function(v){ node.node[name] = v; }.bind(this);
-        //this.sels.push(new UIsr.Number(this.menu, name, callback, this.nodes[id][name]));
+        //this.sels.push(new UIL.Number(this.menu, name, callback, this.nodes[id][name]));
     },
     addNumber:function(id, name, min, max, precision, step, isAngle){
         var node = this.tmp[this.LAYER].nodes[id];
         var callback = function(v){ node.node[name] = v; }.bind(this);
-        this.sels.push(new UIsr.Number(this.bmenu, name, callback, node.node[name], min, max, precision, step, isAngle));
+        this.sels.push(new UIL.Number(this.bmenu, name, callback, node.node[name], min, max, precision, step, isAngle));
     },
     addV2:function(id, name, min, max, precision, step){
         var node = this.tmp[this.LAYER].nodes[id];
-        var callback = function(ar){ node.node[name]=ar;}.bind(this);
-        this.sels.push( new UIsr.V2(this.bmenu, name, callback, node.node[name] ) );
+        var callback = function(v){ node.node[name]=v; }.bind(this);
+        this.sels.push( new UIL.Vector(this.bmenu, name, callback, node.node[name] ));
     },
     addV4:function(id, name, min, max, precision, step){
     },
     addColor:function(id, name){
-        var callback = function(ar){ this.tmp[this.LAYER].nodes[id].node[name] = ar; }.bind(this);
-        this.sels.push( new UIsr.Color(this.bmenu, name, callback, this.tmp[this.LAYER].nodes[id].node[name]) );
+        var node = this.tmp[this.LAYER].nodes[id];
+        var callback = function(v){ node.node[name] = v; }.bind(this);
+        this.sels.push( new UIL.Color(this.bmenu, name, callback, node.node[name] ));
     },
     addBool:function(id, name){
         var node = this.tmp[this.LAYER].nodes[id];
         var callback = function(v){ node.node[name] = v; }.bind(this);
-        this.sels.push( new UIsr.Bool(this.bmenu, name, callback, node.node[name]) );
+        this.sels.push( new UIL.Bool(this.bmenu, name, callback, node.node[name] ));
     },  
     addList:function(id, name, list){
         var node = this.tmp[this.LAYER].nodes[id];
         var callback = function(v){ node.node[name] = v; }.bind(this);
-        this.sels.push( new UIsr.List(this.bmenu, name, callback, node.node[name], list) );
+        this.sels.push( new UIL.List(this.bmenu, name, callback, node.node[name], list ));
     },
     addSlide:function(id, name, min, max, precision, step){
         var node = this.tmp[this.LAYER].nodes[id];
         var callback = function(v){ node.node[name] = v; }.bind(this);
-        this.sels.push( new UIsr.Slide(this.bmenu, name, callback, node.node[name], min, max, precision, step));
+        this.sels.push( new UIL.Slide(this.bmenu, name, callback, node.node[name], min, max, precision, step ));
     },
     addURL:function(id){
         var name = 'URL';
         var node = this.tmp[this.LAYER].nodes[id];
         var callback = function(v){  node.obj.src = v; node.node.src = v; }.bind(this);
-        var s = new UIsr.Url(this.bmenu, name, callback, node.obj.src, 'S' );
+        var s = new UIL.Url(this.bmenu, name, callback, node.obj.src, 'S' );
         this.sels.push( s );
     },
     addVideoURL:function(id){
@@ -1234,14 +1234,14 @@ Serious.Editor.prototype = {
                 node.node.src = v; 
             }
         }.bind(this);
-        var s = new UIsr.Url(this.bmenu, name, callback, node.obj.src , 'S');
+        var s = new UIL.String(this.bmenu, name, callback, node.obj.src , 'S');
         this.sels.push( s );
     },
     addTextureLink:function(id){ //this.textures[obj.texture]
         var name = 'Texture';
         var node = this.tmp[this.LAYER].nodes[id];
         var callback = function(v){ console.log(v, node); node.obj.texture = v; node.node.destroy(); node.node = this.seriously.target(this.textures[v]); this.updateLink(); this.applyLinks(); }.bind(this);
-        var s = new UIsr.Url(this.bmenu, name, callback, node.obj.texture, 'T' );
+        var s = new UIL.String(this.bmenu, name, callback, node.obj.texture, 'T' );
         this.sels.push( s );
     },
 
