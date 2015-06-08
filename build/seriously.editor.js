@@ -16634,8 +16634,8 @@ Serious.Editor = function(autorun, canvas ){
     this.move = {name:'', element:null, down:false, test:false,  x:0,y:0, tx:0, ty:0, mx:0, my:0};
     this.nset = { 
         w:40, h:40, r:6, 
-        sc1:'rgba(120,30,60,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)', nc1:'rgba(40,40,40,0.5)',
-        sc2:'rgba(120,30,60,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)', nc2:'rgba(40,40,40,0.8)',
+        sc1:'rgba(120,60,30,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)', nc1:'rgba(30,30,30,0.5)',
+        sc2:'rgba(120,60,30,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)', nc2:'rgba(40,40,40,0.8)',
     };
 
     this.selectID = -1;
@@ -16749,7 +16749,7 @@ Serious.Editor.prototype = {
         this.body.appendChild( this.content );
         this.body.appendChild( this.menu );
         this.body.appendChild( this.bmenu );
-        this.ui = new UIL.Gui('height:calc(100% - 270px); position:absolute; right:0px; top:270px; pointer-events:auto; background:none; display:none; overflow:auto; overflow-x:hidden;');
+        this.ui = new UIL.Gui('right:0px; top:270px; display:none;');
         this.body.appendChild( this.rmenu );
 
         this.rmenu.appendChild( this.amenu );
