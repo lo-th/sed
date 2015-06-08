@@ -188,6 +188,8 @@ Serious.Editor.prototype = {
         this.content.name = 'root';
 
         this.menu = this.element('S-menu');
+        
+
         this.bmenu = this.element('S-bmenu');
         this.rmenu = this.element('S-rmenu');
         this.amenu = this.element('S-amenu');
@@ -209,6 +211,7 @@ Serious.Editor.prototype = {
         this.body.appendChild( this.content );
         this.body.appendChild( this.menu );
         this.body.appendChild( this.bmenu );
+        this.ui = new UIL.Gui('height:calc(100% - 270px); position:absolute; right:0px; top:270px; pointer-events:auto; background:none; display:none; overflow:auto; overflow-x:hidden;');
         this.body.appendChild( this.rmenu );
 
         this.rmenu.appendChild( this.amenu );
@@ -292,6 +295,7 @@ Serious.Editor.prototype = {
         }()) + ')';
 
         this.menu.style.display = 'block';
+        this.ui.show();
         this.bmenu.style.display = 'block';
         this.rmenu.style.display = 'block';
         this.gridBottom.style.display = 'block';
@@ -317,6 +321,7 @@ Serious.Editor.prototype = {
         this.icc.style.left = '-5px';
 
         this.menu.style.display = 'none';
+        this.ui.hide();
         this.bmenu.style.display = 'none';
         this.rmenu.style.display = 'none';
         this.gridBottom.style.display = 'none';
@@ -886,70 +891,130 @@ Serious.Editor.prototype = {
         var prefix = this.getPrefix(name);
         var type = this.getType(name);
 
-        this.addTitle(id, type, prefix );
+        this.addUIS(id, 'title', {id:id, name:type, prefix:prefix})
 
-        switch(type){
-            case 'image': this.addURL(id); break;
-            case 'video': this.addVideoURL(id); break;
-            case 'texture-3D': this.addTextureLink(id); break;
+       // this.addTitle(id, type, prefix );
+
+       switch(type){
+            case 'image': this.addUIS(id, 'string', {name:'src', color:'R'}); break;
+          //  case 'video': this.addUIS(id, 'string', {}); break;
+            case 'texture-3D': this.addUIS(id, 'string', {name:'texture', color:'B'}); break;
             case 'accumulator':
-                this.addSlide(id, 'opacity', 0, 1, 2);
-                this.addList(id, 'blendMode', Serious.BlendMode);
-                this.addBool(id, 'clear');
+                //this.addSlide(id, 'opacity', 0, 1, 2);
+                //this.addList(id, 'blendMode', Serious.BlendMode);
+                //this.addBool(id, 'clear');
+                this.addUIS(id, 'slide', {name:'opacity', min:0, max:1, precision:2 });
+                this.addUIS(id, 'list', {name:'blendMode', list:Serious.BlendMode});
+                this.addUIS(id, 'bool', {name:'clear'});
             break;
             case 'ascii':
-                this.addColor(id, 'background');
+                //this.addColor(id, 'background');
+                this.addUIS(id, 'color', {name:'background'});
             break;
-            case 'bleach-bypass': this.addSlide(id, 'amount', 0, 1, 2); break;
+            case 'bleach-bypass': 
+                this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2 });
+             //this.addSlide(id, 'amount', 0, 1, 2); 
+            break;
             case 'blend':
-                this.addSlide(id, 'opacity', 0, 1, 2);
-                this.addList(id, 'mode', Serious.BlendMode);
-                this.addList(id, 'sizeMode', Serious.BlendSizeMode);
+                this.addUIS(id, 'slide', {name:'opacity', min:0, max:1, precision:2 });
+                this.addUIS(id, 'list', {name:'mode', list:Serious.BlendMode});
+                this.addUIS(id, 'list', {name:'sizeMode', list:Serious.BlendSizeMode});
+                //this.addSlide(id, 'opacity', 0, 1, 2);
+                //this.addList(id, 'mode', Serious.BlendMode);
+                //this.addList(id, 'sizeMode', Serious.BlendSizeMode);
             break;
-            case 'blur': this.addSlide(id, 'amount', 0, 1, 2); break;
+            case 'blur': 
+                this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2 });
+            //this.addSlide(id, 'amount', 0, 1, 2); 
+            break;
             case 'brightness-contrast':
-                this.addSlide(id, 'brightness', 0, 1, 2);
-                this.addSlide(id, 'contrast', 0, 1, 2);
+                this.addUIS(id, 'slide', {name:'brightness', min:0, max:1, precision:2 });
+                this.addUIS(id, 'slide', {name:'contrast', min:0, max:1, precision:2 });
+                //this.addSlide(id, 'brightness', 0, 1, 2);
+                //this.addSlide(id, 'contrast', 0, 1, 2);
             break;
             case 'channels':
+                var l = ['red', 'green', 'blue', 'alpha', 'union', 'intersection']
+                this.addUIS(id, 'list', {name:'red', list:l});
+                this.addUIS(id, 'list', {name:'green', list:l});
+                this.addUIS(id, 'list', {name:'blue', list:l});
+                this.addUIS(id, 'list', {name:'alpha', list:l});
                 /// ? //// +  4 sources redSource greenSource blueSource alphaSource
-                this.addList(id, 'red', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);
+                /*this.addList(id, 'red', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);
                 this.addList(id, 'green', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);
                 this.addList(id, 'blue', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);
-                this.addList(id, 'alpha', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);
+                this.addList(id, 'alpha', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);*/
             break;
             case 'checkerboard':
-                this.addV2(id, 'anchor');
+                this.addUIS(id, 'number', {name:'anchor'});
+                this.addUIS(id, 'number', {name:'size'});
+                this.addUIS(id, 'color', {name:'color1'});
+                this.addUIS(id, 'color', {name:'color2'});
+                this.addUIS(id, 'number', {name:'width', min:0, precision:0 });
+                this.addUIS(id, 'number', {name:'height', min:0, precision:0 });
+
+                /*this.addV2(id, 'anchor');
                 this.addV2(id, 'size');
                 this.addColor(id, 'color1');
                 this.addColor(id, 'color2');
                 this.addNumber(id, 'width', 0, 2000, 0, 1);
-                this.addNumber(id, 'height', 0, 2000, 0, 1);
+                this.addNumber(id, 'height', 0, 2000, 0, 1);*/
             break;
             case 'chroma':
-                this.addColor(id, 'screen');
+                this.addUIS(id, 'color', {name:'screen'});
+                this.addUIS(id, 'number', {name:'weight'});
+                this.addUIS(id, 'slide', {name:'balance', min:0, max:1, precision:2});
+                this.addUIS(id, 'slide', {name:'clipBlack', min:0, max:1, precision:2});
+                this.addUIS(id, 'slide', {name:'clipWhite', min:0, max:1, precision:2});
+                this.addUIS(id, 'bool', {name:'mask'});
+
+                /*this.addColor(id, 'screen');
                 this.addNumber(id, 'weight');
                 this.addSlide(id, 'balance', 0, 1, 2);
                 this.addSlide(id, 'clipBlack', 0, 1, 2);
                 this.addSlide(id, 'clipWhite', 0, 1, 2);
-                this.addBool(id, 'mask');
+                this.addBool(id, 'mask');*/
             break;
             case 'color':
-                this.addColor(id, 'color');
-                this.addNumber(id, 'width');
-                this.addNumber(id, 'height');
+                this.addUIS(id, 'color', {name:'color'});
+                this.addUIS(id, 'number', {name:'width', min:0, precision:0 });
+                this.addUIS(id, 'number', {name:'height', min:0, precision:0 });
+
+                //this.addColor(id, 'color');
+                //this.addNumber(id, 'width');
+                //this.addNumber(id, 'height');
             break;
             case 'colorcomplements':
-                this.addSlide(id, 'amount', 0, 1, 2);
-                this.addSlide(id, 'concentration', 0.1, 4, 2);
-                this.addSlide(id, 'correlation', 0, 1, 2);
-                this.addColor(id, 'guideColor');
+                this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
+                this.addUIS(id, 'slide', {name:'concentration', min:0.1, max:4, precision:2});
+                this.addUIS(id, 'slide', {name:'correlation', min:0, max:1, precision:2});
+                this.addUIS(id, 'color', {name:'guideColor'});
+
+                //this.addSlide(id, 'amount', 0, 1, 2);
+                //this.addSlide(id, 'concentration', 0.1, 4, 2);
+                //this.addSlide(id, 'correlation', 0, 1, 2);
+                //this.addColor(id, 'guideColor');
             break;
             case 'colorcube':
                 /// ? ////
             break;
             case 'color-select':
-                this.addNumber(id, 'hueMin');
+                this.addUIS(id, 'number', {name:'hueMin', min:0, precision:0 });
+                this.addUIS(id, 'number', {name:'hueMax', min:0, precision:0 });
+                this.addUIS(id, 'number', {name:'hueMinFalloff', min:0, precision:0 });
+                this.addUIS(id, 'number', {name:'hueMaxFalloff', min:0, precision:0 });
+                this.addUIS(id, 'slide', {name:'saturationMin', min:0, max:1, precision:2});
+                this.addUIS(id, 'slide', {name:'saturationMax', min:0, max:1, precision:2});
+                this.addUIS(id, 'number', {name:'saturationMinFalloff', min:0, precision:0 });
+                this.addUIS(id, 'number', {name:'saturationMaxFalloff', min:0, precision:0 });
+                this.addUIS(id, 'slide', {name:'lightnessMin', min:0, max:1, precision:2});
+                this.addUIS(id, 'slide', {name:'lightnessMax', min:0, max:1, precision:2});
+                this.addUIS(id, 'number', {name:'lightnessMinFalloff', min:0, precision:0 });
+                this.addUIS(id, 'number', {name:'lightnessMaxFalloff', min:0, precision:0 });
+                this.addUIS(id, 'bool', {name:'mask'});
+
+
+                /*this.addNumber(id, 'hueMin');
                 this.addNumber(id, 'hueMax');
                 this.addNumber(id, 'hueMinFalloff', 0);
                 this.addNumber(id, 'hueMaxFalloff', 0);
@@ -961,34 +1026,76 @@ Serious.Editor.prototype = {
                 this.addSlide(id, 'lightnessMax', 0, 1, 2);
                 this.addNumber(id, 'lightnessMinFalloff', 0);
                 this.addNumber(id, 'lightnessMaxFalloff', 0);
-                this.addBool(id, 'mask');
+                this.addBool(id, 'mask');*/
             break;
             case 'crop':
-                this.addNumber(id, 'top', 0, 1);
+                this.addUIS(id, 'number', {name:'top', min:0, precision:0 });
+                this.addUIS(id, 'number', {name:'left', min:0, precision:0 });
+                this.addUIS(id, 'number', {name:'bottom', min:0, precision:0 });
+                this.addUIS(id, 'number', {name:'right', min:0, precision:0 });
+
+                /*this.addNumber(id, 'top', 0, 1);
                 this.addNumber(id, 'left', 0, 1);
                 this.addNumber(id, 'bottom', 0, 1);
-                this.addNumber(id, 'right', 0, 1);
+                this.addNumber(id, 'right', 0, 1);*/
             break;
-            case 'daltonize': this.addList(id, 'type', ['0.0', '0.2', '0.6', '0.8']); break;
+            case 'daltonize': 
+                this.addUIS(id, 'list', {name:'type', list:['0.0', '0.2', '0.6', '0.8']});
+                //this.addList(id, 'type', ['0.0', '0.2', '0.6', '0.8']);
+            break;
             case 'directionblur':
-                this.addSlide(id, 'amount', 0, 1, 2);
-                this.addNumber(id, 'angle', 0, 360, 0, 1, true);
+                this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
+                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, precision:0, isAngle:true});
+
+                //this.addSlide(id, 'amount', 0, 1, 2);
+                //this.addNumber(id, 'angle', 0, 360, 0, 1, true);
             break;
             case 'displacement':
-                this.addList(id, 'xChannel', ['red', 'green', 'blue', 'alpha', 'luma', 'lightness', 'none' ]);
+                this.addUIS(id, 'list', {name:'xChannel', list:['red', 'green', 'blue', 'alpha', 'luma', 'lightness', 'none' ]});
+                this.addUIS(id, 'list', {name:'yChannel', list:['red', 'green', 'blue', 'alpha', 'luma', 'lightness', 'none' ]});
+                this.addUIS(id, 'list', {name:'fillMode', list:['color', 'wrap', 'clamp', 'ignore' ]});
+                this.addUIS(id, 'color', {name:'color'});
+                this.addUIS(id, 'number', {name:'offset', min:0, max:10, precision:2, step:0.01 });
+                this.addUIS(id, 'number', {name:'mapScale', min:0, precision:0 });
+                this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
+
+
+                /*this.addList(id, 'xChannel', ['red', 'green', 'blue', 'alpha', 'luma', 'lightness', 'none' ]);
                 this.addList(id, 'yChannel', ['red', 'green', 'blue', 'alpha', 'luma', 'lightness', 'none' ]);
                 this.addList(id, 'fillMode', ['color', 'wrap', 'clamp', 'ignore' ]);
                 this.addColor(id, 'color');
                 this.addNumber(id, 'offset', 0, 10, 2, 0.01);
                 this.addV2(id, 'mapScale');
-                this.addSlide(id, 'amount', 0, 1, 2);
+                this.addSlide(id, 'amount', 0, 1, 2);*/
             break;
+
+
+
+
             case 'dither': break;
-            case 'edge': this.addList(id, 'mode', ['sobel', 'frei-chen']); break;
-            case 'emboss': this.addSlide(id, 'amount', -255/3,  255/3, 0); break;
-            case 'exposure': this.addSlide(id, 'exposure', -8,  8, 1); break;
+            case 'edge': 
+                this.addUIS(id, 'list', {name:'mode', list:['sobel', 'frei-chen']});
+                //this.addList(id, 'mode', ['sobel', 'frei-chen']); 
+            break;
+            case 'emboss': 
+                this.addUIS(id, 'slide', {name:'amount', min:-255/3, max:255/3, precision:0});
+                //this.addSlide(id, 'amount', -255/3,  255/3, 0);
+            break;
+            case 'exposure': 
+                this.addUIS(id, 'slide', {name:'exposure', min:-8, max:8, precision:1});
+                //this.addSlide(id, 'exposure', -8,  8, 1); 
+            break;
             case 'expression':
-                this.addNumber(id, 'a', 0);
+                this.addUIS(id, 'number', {name:'a'});
+                this.addUIS(id, 'number', {name:'b'});
+                this.addUIS(id, 'number', {name:'c'});
+                this.addUIS(id, 'number', {name:'d'});
+                this.addUIS(id, 'string', {name:'rgb'});
+                this.addUIS(id, 'string', {name:'red'});
+                this.addUIS(id, 'string', {name:'green'});
+                this.addUIS(id, 'string', {name:'blue'});
+                this.addUIS(id, 'string', {name:'alpha'});
+                /*this.addNumber(id, 'a', 0);
                 this.addNumber(id, 'b', 0);
                 this.addNumber(id, 'c', 0);
                 this.addNumber(id, 'd', 0);
@@ -996,107 +1103,177 @@ Serious.Editor.prototype = {
                 this.addString(id, 'red');
                 this.addString(id, 'green');
                 this.addString(id, 'blue');
-                this.addString(id, 'alpha');
+                this.addString(id, 'alpha');*/
             break;
             case 'fader':
-                this.addColor(id, 'color');
-                this.addSlide(id, 'amount', 0, 1, 2);
+                this.addUIS(id, 'color', {name:'color'});
+                this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
+                //this.addColor(id, 'color');
+                //this.addSlide(id, 'amount', 0, 1, 2);
             break;
             case 'falsecolor':
-                this.addColor(id, 'black');
-                this.addColor(id, 'white');
+                this.addUIS(id, 'color', {name:'black'});
+                this.addUIS(id, 'color', {name:'white'});
+                //this.addColor(id, 'black');
+                //this.addColor(id, 'white');
             break;
             case 'filmgrain':
-                this.addNumber(id, 'time');
-                this.addSlide(id, 'amount', 0, 1, 2);
-                this.addBool(id, 'colored');
+                this.addUIS(id, 'number', {name:'time'});
+                this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
+                this.addUIS(id, 'bool', {name:'colored'});
+                //this.addNumber(id, 'time');
+                //this.addSlide(id, 'amount', 0, 1, 2);
+                //this.addBool(id, 'colored');
             break;
             case 'freeze':
-                this.addBool(id, 'frozen');
+                this.addUIS(id, 'bool', {name:'frozen'});
+                //this.addBool(id, 'frozen');
             break;
             case 'fxaa': break;
             case 'gradientwipe':
-                this.addImage(id, 'gradient');
-                this.addNumber(id, 'transition');
-                this.addBool(id, 'invert');
-                this.addSlide(id, 'smoothness', 0, 1, 2);
+                this.addUIS(id, 'string', {name:'gradient'});
+                this.addUIS(id, 'number', {name:'transition'});
+                this.addUIS(id, 'bool', {name:'invert'});
+                this.addUIS(id, 'slide', {name:'smoothness', min:0, max:1, precision:2});
+                //this.addImage(id, 'gradient');
+                //this.addNumber(id, 'transition');
+                //this.addBool(id, 'invert');
+                //this.addSlide(id, 'smoothness', 0, 1, 2);
             break;
             case 'hex':
-                this.addSlide(id, 'size', 0, 0.4, 2);
-                this.addV2(id, 'center');
+                this.addUIS(id, 'slide', {name:'size', min:0, max:0.4, precision:2});
+                this.addUIS(id, 'number', {name:'center',precision:0});
+                //this.addSlide(id, 'size', 0, 0.4, 2);
+                //this.addV2(id, 'center');
             break;
             case 'highlights-shadows':
-                this.addSlide(id, 'highlights', 0, 1, 2);
-                this.addSlide(id, 'shadows', 0, 1, 2);
+                this.addUIS(id, 'slide', {name:'highlights', min:0, max:1, precision:2});
+                this.addUIS(id, 'slide', {name:'shadows', min:0, max:1, precision:2});
+                //this.addSlide(id, 'highlights', 0, 1, 2);
+                //this.addSlide(id, 'shadows', 0, 1, 2);
             break;
             case 'hue-saturation':
-                this.addSlide(id, 'hue', -1, 1, 2);
-                this.addSlide(id, 'saturation', -1, 1, 2);
+                this.addUIS(id, 'slide', {name:'hue', min:-1, max:1, precision:2});
+                this.addUIS(id, 'slide', {name:'saturation', min:-1, max:1, precision:2});
+                //this.addSlide(id, 'hue', -1, 1, 2);
+                //this.addSlide(id, 'saturation', -1, 1, 2);
             break;
             case 'invert':break;
             case 'kaleidoscope':
-                this.addNumber(id, 'segments');
-                this.addNumber(id, 'offset');
+                this.addUIS(id, 'number', {name:'segments', precision:0});
+                this.addUIS(id, 'number', {name:'offset', precision:0});
+                //this.addNumber(id, 'segments');
+                //this.addNumber(id, 'offset');
             break;
             case 'layer':
-                this.addNumber(id, 'count');
+                this.addUIS(id, 'number', {name:'count', precision:0});
+                //this.addNumber(id, 'count');
                 /// ? ////
             break;
             case 'linear-transfer':
-                this.addV4(id, 'slope');
-                this.addV4(id, 'intercept');
+                this.addUIS(id, 'number', {name:'slope'});
+                this.addUIS(id, 'number', {name:'intercept'});
+                //this.addV4(id, 'slope');
+                //this.addV4(id, 'intercept');
             break;
             case 'lumakey':
-                this.addSlide(id, 'clipBlack', 0, 1, 2);
-                this.addSlide(id, 'clipWhite', 0, 1, 2);
-                this.addBool(id, 'invert');
+                this.addUIS(id, 'slide', {name:'clipBlack', min:0, max:1, precision:2});
+                this.addUIS(id, 'slide', {name:'clipWhite', min:0, max:1, precision:2});
+                this.addUIS(id, 'bool', {name:'invert'});
+
+                //this.addSlide(id, 'clipBlack', 0, 1, 2);
+                //this.addSlide(id, 'clipWhite', 0, 1, 2);
+                //this.addBool(id, 'invert');
             break;
             case 'mirror': break;
             case 'nightvision':
-                this.addNumber(id, 'timer');
-                this.addSlide(id, 'luminanceThreshold', 0, 1, 2);
-                this.addNumber(id, 'amplification', 0);
-                this.addColor(id, 'color');
+                this.addUIS(id, 'number', {name:'timer', min:0});
+                this.addUIS(id, 'slide', {name:'luminanceThreshold', min:0, max:1, precision:2});
+                this.addUIS(id, 'number', {name:'amplification', min:0});
+                this.addUIS(id, 'color', {name:'color'});
+
+                //this.addNumber(id, 'timer');
+                //this.addSlide(id, 'luminanceThreshold', 0, 1, 2);
+                //this.addNumber(id, 'amplification', 0);
+                //this.addColor(id, 'color');
             break;
             case 'noise':
-                this.addBool(id, 'overlay');
-                this.addSlide(id, 'amount', 0, 1, 2);
-                this.addNumber(id, 'timer', NaN, 1);
+                this.addUIS(id, 'bool', {name:'overlay'});
+                this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
+                this.addUIS(id, 'number', {name:'timer', min:0 });
+
+                //this.addBool(id, 'overlay');
+                //this.addSlide(id, 'amount', 0, 1, 2);
+                //this.addNumber(id, 'timer', NaN, 1);
             break;
             case 'panorama':
-                this.addNumber(id, 'width', 0, 1);
-                this.addNumber(id, 'height', 0, 1);
-                this.addSlide(id, 'yaw', 0, 360, 0);
-                this.addSlide(id, 'fov', 0, 180, 0);
-                this.addSlide(id, 'pitch', -90, 90, 0);
+                this.addUIS(id, 'number', {name:'width', min:0, precision:0});
+                this.addUIS(id, 'number', {name:'height', min:0, precision:0});
+                this.addUIS(id, 'slide', {name:'yaw', min:0, max:360, precision:0});
+                this.addUIS(id, 'slide', {name:'fov', min:0, max:180, precision:0});
+                this.addUIS(id, 'slide', {name:'pitch', min:-90, max:90, precision:0});
+
+                //this.addNumber(id, 'width', 0, 1);
+                //this.addNumber(id, 'height', 0, 1);
+                //this.addSlide(id, 'yaw', 0, 360, 0);
+                //this.addSlide(id, 'fov', 0, 180, 0);
+                //this.addSlide(id, 'pitch', -90, 90, 0);
             break;
             case 'pixelate':
-                this.addV2(id, 'pixelSize', 0);
+                this.addUIS(id, 'number', {name:'pixelSize', min:0, precision:0});
+                //this.addV2(id, 'pixelSize', 0);
             break;
-            case 'polar': this.addSlide(id, 'angle', 0, 360, 0, 1, true); break;
+            case 'polar': 
+                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, isAngle:true})
+                //this.addSlide(id, 'angle', 0, 360, 0, 1, true); 
+            break;
             case 'repeat':
-                this.addNumber(id, 'repeat', 0, 1);
-                this.addNumber(id, 'width', 0, 1);
-                this.addNumber(id, 'height', 0, 1);
+                this.addUIS(id, 'number', {name:'repeat', min:0, precision:0});
+                this.addUIS(id, 'number', {name:'width', min:0, precision:0});
+                this.addUIS(id, 'number', {name:'height', min:0, precision:0});
+
+                //this.addNumber(id, 'repeat', 0, 1);
+                //this.addNumber(id, 'width', 0, 1);
+                //this.addNumber(id, 'height', 0, 1);
             break;
             case 'ripple':
-                this.addNumber(id, 'wave', 0, 1);
-                this.addNumber(id, 'distortion', 0, 1);
-                this.addV2(id, 'center');
+                this.addUIS(id, 'number', {name:'wave', precision:2});
+                this.addUIS(id, 'number', {name:'distortion', precision:2});
+                this.addUIS(id, 'number', {name:'center'});
+                //his.addNumber(id, 'wave', 0, 1);
+                //this.addNumber(id, 'distortion', 0, 1);
+                //this.addV2(id, 'center');
             break;
             case 'scanlines':
-                this.addNumber(id, 'lines');
-                this.addSlide(id, 'size', 0, 1, 2);
-                this.addSlide(id, 'intensity', 0, 1, 2);
+                this.addUIS(id, 'number', {name:'lines'});
+                this.addUIS(id, 'slide', {name:'size', min:0, max:1, precision:2});
+                this.addUIS(id, 'slide', {name:'intensity', min:0, max:1, precision:2});
+
+                //this.addNumber(id, 'lines');
+                //this.addSlide(id, 'size', 0, 1, 2);
+                //this.addSlide(id, 'intensity', 0, 1, 2);
             break;
             case 'select':
                 /// ? //// no SOURCE
-                this.addSlide(id, 'active', 0, 3, 0);
-                this.addList(id, 'sizeMode', ['union', 'intersection', 'active']);
+                this.addUIS(id, 'slide', {name:'active', min:0, max:3, precision:0});
+                this.addUIS(id, 'list', {name:'sizeMode', list:['union', 'intersection', 'active']});
+                //this.addSlide(id, 'active', 0, 3, 0);
+                //this.addList(id, 'sizeMode', ['union', 'intersection', 'active']);
             break;
             case 'sepia': break;
             case 'simplex':
-                this.addV2(id, 'noiseScale');
+                this.addUIS(id, 'number', {name:'noiseScale'});
+                this.addUIS(id, 'number', {name:'noiseOffset'});
+                this.addUIS(id, 'slide', {name:'octaves', min:1, max:8, precision:0});
+                this.addUIS(id, 'slide', {name:'persistence', min:0, max:0.5, precision:2});
+                this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
+                this.addUIS(id, 'number', {name:'time'});
+                this.addUIS(id, 'number', {name:'width', min:0});
+                this.addUIS(id, 'number', {name:'height', min:0});
+                this.addUIS(id, 'color', {name:'black'});
+                this.addUIS(id, 'color', {name:'white'});
+
+                /*this.addV2(id, 'noiseScale');
                 this.addV2(id, 'noiseOffset');
                 this.addSlide(id, 'octaves', 1, 8, 0);
                 this.addSlide(id, 'persistence', 0, 0.5, 2);
@@ -1105,26 +1282,47 @@ Serious.Editor.prototype = {
                 this.addNumber(id, 'width');
                 this.addNumber(id, 'height');
                 this.addColor(id, 'black');
-                this.addColor(id, 'white');
+                this.addColor(id, 'white');*/
             break;
             case 'sketch': break;
             case 'split':
-                this.addList(id, 'sizeMode', ['a', 'b', 'union', 'intersection']);
-                this.addSlide(id, 'split', 0, 1, 2);
-                this.addNumber(id, 'angle', 0, 360, 0, 1, true);
-                this.addSlide(id, 'fuzzy', 0, 1, 2);
+                this.addUIS(id, 'list', {name:'sizeMode', list:['a', 'b', 'union', 'intersection']});
+                this.addUIS(id, 'slide', {name:'split', min:0, max:1, precision:2});
+                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, isAngle:true});
+                this.addUIS(id, 'slide', {name:'fuzzy', min:0, max:1, precision:2});
+
+                //this.addList(id, 'sizeMode', ['a', 'b', 'union', 'intersection']);
+                //this.addSlide(id, 'split', 0, 1, 2);
+                //this.addNumber(id, 'angle', 0, 360, 0, 1, true);
+                //this.addSlide(id, 'fuzzy', 0, 1, 2);
             break;
             case 'throttle':
-                this.addNumber(id, 'frameRate', 0);
+                //this.addNumber(id, 'frameRate', 0);
+                this.addUIS(id, 'number', {name:'frameRate', min:0});
             break;
             case 'tone':
-                this.addColor(id, 'light');
-                this.addColor(id, 'dark');
-                this.addSlide(id, 'toned', 0, 1, 2);
-                this.addSlide(id, 'desat', 0, 1, 2);
+                this.addUIS(id, 'color', {name:'light'});
+                this.addUIS(id, 'color', {name:'dark'});
+                this.addUIS(id, 'slide', {name:'toned', min:0, max:1, precision:2 });
+                this.addUIS(id, 'slide', {name:'desat', min:0, max:1, precision:2 });
+                //this.addColor(id, 'light');
+                //this.addColor(id, 'dark');
+                //this.addSlide(id, 'toned', 0, 1, 2);
+                //this.addSlide(id, 'desat', 0, 1, 2);
             break;
             case 'tvglitch':
-                this.addSlide(id, 'distortion', 0, 1, 2);
+                this.addUIS(id, 'slide', {name:'distortion', min:0, max:1, precision:2 });
+                this.addUIS(id, 'slide', {name:'verticalSync', min:0, max:1, precision:2 });
+                this.addUIS(id, 'slide', {name:'lineSync', min:0, max:1, precision:2 });
+                this.addUIS(id, 'slide', {name:'scanlines', min:0, max:1, precision:2 });
+                this.addUIS(id, 'slide', {name:'bars', min:0, max:1, precision:2 });
+                this.addUIS(id, 'slide', {name:'frameShape', min:0, max:2, precision:2 });
+                this.addUIS(id, 'slide', {name:'frameLimit', min:-1, max:1, precision:2 });
+                this.addUIS(id, 'slide', {name:'frameSharpness', min:0, max:40, precision:1 });
+                this.addUIS(id, 'color', {name:'frameColor'});
+
+
+                /*this.addSlide(id, 'distortion', 0, 1, 2);
                 this.addSlide(id, 'verticalSync', 0, 1, 2);
                 this.addSlide(id, 'lineSync', 0, 1, 2);
                 this.addSlide(id, 'scanlines', 0, 1, 2);
@@ -1132,29 +1330,61 @@ Serious.Editor.prototype = {
                 this.addSlide(id, 'frameShape', 0, 2, 2);
                 this.addSlide(id, 'frameLimit', -1, 1, 2);
                 this.addSlide(id, 'frameSharpness', 0, 40, 1);
-                this.addColor(id, 'frameColor');
+                this.addColor(id, 'frameColor');*/
             break;
-            case 'vignette': this.addSlide(id, 'amount', 0, 1, 2); break;
-            case 'vibrance': this.addSlide(id, 'amount', -1, 1, 2); break;
+            case 'vignette':
+                this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2 });
+              //  this.addSlide(id, 'amount', 0, 1, 2); 
+            break;
+            case 'vibrance': 
+                this.addUIS(id, 'slide', {name:'amount', min:-1, max:1, precision:2 });
+                //this.addSlide(id, 'amount', -1, 1, 2); 
+            break;
             case 'whitebalance':
-                this.addColor(id, 'white');
-                this.addBool(id, 'auto');
+                this.addUIS(id, 'color', {name:'white'});
+                this.addUIS(id, 'bool', {name:'auto'});
+                //this.addColor(id, 'white');
+                //this.addBool(id, 'auto');
             break;
         }
     },
     clearSelector:function(){
         this.selectID = -1;
         this.select.style.display = 'none';
+
+        if(this.ui)this.ui.clear();
         //while(this.menu.firstChild) { this.menu.removeChild(this.menu.firstChild); }
-        var i = this.sels.length;
+        /*var i = this.sels.length;
         while(i--){ 
             this.sels[i].clear(); 
             this.sels.pop();
-        }
+        }*/
     },
 
     // FROM UIL
-    addOption:function(id, name, list){
+    addUIS:function(id, type, obj){
+        if(type!=='title'){
+            var name = obj.name;
+            var node = this.tmp[this.LAYER].nodes[id];
+            if(obj.name == 'src'){
+                obj.callback = function(v){ node.obj.src = v; node.node[name] = v; }.bind(this);
+                obj.value = node.obj.src;
+            }else if(obj.name=='texture'){
+                obj.callback = function(v){ node.obj.texture = v; node.node.destroy(); node.node = this.seriously.target(this.textures[v]); this.updateLink(); this.applyLinks(); }.bind(this);
+                obj.value = node.obj.texture;
+            }else{
+                obj.callback = function(v){ node.node[name] = v; }.bind(this);
+                obj.value = node.node[name];
+            }
+            
+        }
+        this.ui.add(type, obj);
+    },
+
+
+
+
+    /*addOption:function(id, name, list){
         var callback = function(v){  }.bind(this);
         this.sels.push( new UIL.List(this.bmenu, name, callback, name, list) );
     },
@@ -1211,7 +1441,7 @@ Serious.Editor.prototype = {
         var callback = function(v){  node.obj.src = v; node.node.src = v; }.bind(this);
         var s = new UIL.String(this.bmenu, name, callback, node.obj.src, 'S' );
         this.sels.push( s );
-    },
+    },*/
     addVideoURL:function(id){
         var name = 'URL';
         var node = this.tmp[this.LAYER].nodes[id];
@@ -1237,13 +1467,13 @@ Serious.Editor.prototype = {
         var s = new UIL.String(this.bmenu, name, callback, node.obj.src , 'S');
         this.sels.push( s );
     },
-    addTextureLink:function(id){ //this.textures[obj.texture]
+    /*addTextureLink:function(id){ //this.textures[obj.texture]
         var name = 'Texture';
         var node = this.tmp[this.LAYER].nodes[id];
         var callback = function(v){ console.log(v, node); node.obj.texture = v; node.node.destroy(); node.node = this.seriously.target(this.textures[v]); this.updateLink(); this.applyLinks(); }.bind(this);
         var s = new UIL.String(this.bmenu, name, callback, node.obj.texture, 'T' );
         this.sels.push( s );
-    },
+    },*/
 
 
     //-----------------------------------------------------------
