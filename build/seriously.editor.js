@@ -16640,7 +16640,7 @@ Serious.Editor = function(autorun, canvas ){
 
     this.selectID = -1;
 
-    this.sels = [];
+    //this.sels = [];
 
     this.init();
 }
@@ -16677,7 +16677,7 @@ Serious.Editor.prototype = {
         Serious.createClass('S-grid-plus', 'position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
 
         Serious.createClass('S-menu', 'width:300px; height:20px; position:absolute; right:0px; top:0px; pointer-events:auto; background:#282828; display:none; '+ str);
-        Serious.createClass('S-bmenu', 'width:300px; height:calc(100% - 270px); position:absolute; right:0px; top:270px; pointer-events:none; background:none; display:none; overflow:auto; overflow-x:hidden;'+ str);
+        //Serious.createClass('S-bmenu', 'width:300px; height:calc(100% - 270px); position:absolute; right:0px; top:270px; pointer-events:none; background:none; display:none; overflow:auto; overflow-x:hidden;'+ str);
         Serious.createClass('S-rmenu', 'width:300px; height:50px; position:absolute; right:0px; top:270px; pointer-events:none; background:#282828; display:none;'+ str);
         Serious.createClass('S-amenu', 'width:300px; height:auto; position:absolute; padding:3px; right:0px; top:50px; pointer-events:none; background:#282828; display:none; text-align:center;'+ str);
 
@@ -16728,7 +16728,7 @@ Serious.Editor.prototype = {
         this.menu = this.element('S-menu');
         
 
-        this.bmenu = this.element('S-bmenu');
+        //this.bmenu = this.element('S-bmenu');
         this.rmenu = this.element('S-rmenu');
         this.amenu = this.element('S-amenu');
         this.grid = this.element('S-grid');
@@ -16748,7 +16748,7 @@ Serious.Editor.prototype = {
 
         this.body.appendChild( this.content );
         this.body.appendChild( this.menu );
-        this.body.appendChild( this.bmenu );
+        //this.body.appendChild( this.bmenu );
         this.ui = new UIL.Gui('right:0px; top:270px; display:none;');
         this.body.appendChild( this.rmenu );
 
@@ -16834,7 +16834,7 @@ Serious.Editor.prototype = {
 
         this.menu.style.display = 'block';
         this.ui.show();
-        this.bmenu.style.display = 'block';
+        //this.bmenu.style.display = 'block';
         this.rmenu.style.display = 'block';
         this.gridBottom.style.display = 'block';
         
@@ -16860,7 +16860,7 @@ Serious.Editor.prototype = {
 
         this.menu.style.display = 'none';
         this.ui.hide();
-        this.bmenu.style.display = 'none';
+        //this.bmenu.style.display = 'none';
         this.rmenu.style.display = 'none';
         this.gridBottom.style.display = 'none';
 
@@ -17429,47 +17429,33 @@ Serious.Editor.prototype = {
         var prefix = this.getPrefix(name);
         var type = this.getType(name);
 
-        this.addUIS(id, 'title', {id:id, name:type, prefix:prefix})
-
-       // this.addTitle(id, type, prefix );
+        this.addUIS(id, 'title', {id:id, name:type, prefix:prefix});
 
        switch(type){
             case 'image': this.addUIS(id, 'string', {name:'src', color:'R'}); break;
-          //  case 'video': this.addUIS(id, 'string', {}); break;
             case 'texture-3D': this.addUIS(id, 'string', {name:'texture', color:'B'}); break;
             case 'accumulator':
-                //this.addSlide(id, 'opacity', 0, 1, 2);
-                //this.addList(id, 'blendMode', Serious.BlendMode);
-                //this.addBool(id, 'clear');
                 this.addUIS(id, 'slide', {name:'opacity', min:0, max:1, precision:2 });
                 this.addUIS(id, 'list', {name:'blendMode', list:Serious.BlendMode});
                 this.addUIS(id, 'bool', {name:'clear'});
             break;
             case 'ascii':
-                //this.addColor(id, 'background');
                 this.addUIS(id, 'color', {name:'background'});
             break;
             case 'bleach-bypass': 
                 this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2 });
-             //this.addSlide(id, 'amount', 0, 1, 2); 
             break;
             case 'blend':
                 this.addUIS(id, 'slide', {name:'opacity', min:0, max:1, precision:2 });
                 this.addUIS(id, 'list', {name:'mode', list:Serious.BlendMode});
                 this.addUIS(id, 'list', {name:'sizeMode', list:Serious.BlendSizeMode});
-                //this.addSlide(id, 'opacity', 0, 1, 2);
-                //this.addList(id, 'mode', Serious.BlendMode);
-                //this.addList(id, 'sizeMode', Serious.BlendSizeMode);
             break;
             case 'blur': 
                 this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2 });
-            //this.addSlide(id, 'amount', 0, 1, 2); 
             break;
             case 'brightness-contrast':
                 this.addUIS(id, 'slide', {name:'brightness', min:0, max:1, precision:2 });
                 this.addUIS(id, 'slide', {name:'contrast', min:0, max:1, precision:2 });
-                //this.addSlide(id, 'brightness', 0, 1, 2);
-                //this.addSlide(id, 'contrast', 0, 1, 2);
             break;
             case 'channels':
                 var l = ['red', 'green', 'blue', 'alpha', 'union', 'intersection']
@@ -17477,11 +17463,6 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'list', {name:'green', list:l});
                 this.addUIS(id, 'list', {name:'blue', list:l});
                 this.addUIS(id, 'list', {name:'alpha', list:l});
-                /// ? //// +  4 sources redSource greenSource blueSource alphaSource
-                /*this.addList(id, 'red', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);
-                this.addList(id, 'green', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);
-                this.addList(id, 'blue', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);
-                this.addList(id, 'alpha', ['red', 'green', 'blue', 'alpha', 'union', 'intersection']);*/
             break;
             case 'checkerboard':
                 this.addUIS(id, 'number', {name:'anchor'});
@@ -17490,13 +17471,6 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'color', {name:'color2'});
                 this.addUIS(id, 'number', {name:'width', min:0, precision:0 });
                 this.addUIS(id, 'number', {name:'height', min:0, precision:0 });
-
-                /*this.addV2(id, 'anchor');
-                this.addV2(id, 'size');
-                this.addColor(id, 'color1');
-                this.addColor(id, 'color2');
-                this.addNumber(id, 'width', 0, 2000, 0, 1);
-                this.addNumber(id, 'height', 0, 2000, 0, 1);*/
             break;
             case 'chroma':
                 this.addUIS(id, 'color', {name:'screen'});
@@ -17505,33 +17479,17 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'slide', {name:'clipBlack', min:0, max:1, precision:2});
                 this.addUIS(id, 'slide', {name:'clipWhite', min:0, max:1, precision:2});
                 this.addUIS(id, 'bool', {name:'mask'});
-
-                /*this.addColor(id, 'screen');
-                this.addNumber(id, 'weight');
-                this.addSlide(id, 'balance', 0, 1, 2);
-                this.addSlide(id, 'clipBlack', 0, 1, 2);
-                this.addSlide(id, 'clipWhite', 0, 1, 2);
-                this.addBool(id, 'mask');*/
             break;
             case 'color':
                 this.addUIS(id, 'color', {name:'color'});
                 this.addUIS(id, 'number', {name:'width', min:0, precision:0 });
                 this.addUIS(id, 'number', {name:'height', min:0, precision:0 });
-
-                //this.addColor(id, 'color');
-                //this.addNumber(id, 'width');
-                //this.addNumber(id, 'height');
             break;
             case 'colorcomplements':
                 this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
                 this.addUIS(id, 'slide', {name:'concentration', min:0.1, max:4, precision:2});
                 this.addUIS(id, 'slide', {name:'correlation', min:0, max:1, precision:2});
                 this.addUIS(id, 'color', {name:'guideColor'});
-
-                //this.addSlide(id, 'amount', 0, 1, 2);
-                //this.addSlide(id, 'concentration', 0.1, 4, 2);
-                //this.addSlide(id, 'correlation', 0, 1, 2);
-                //this.addColor(id, 'guideColor');
             break;
             case 'colorcube':
                 /// ? ////
@@ -17550,43 +17508,19 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'number', {name:'lightnessMinFalloff', min:0, precision:0 });
                 this.addUIS(id, 'number', {name:'lightnessMaxFalloff', min:0, precision:0 });
                 this.addUIS(id, 'bool', {name:'mask'});
-
-
-                /*this.addNumber(id, 'hueMin');
-                this.addNumber(id, 'hueMax');
-                this.addNumber(id, 'hueMinFalloff', 0);
-                this.addNumber(id, 'hueMaxFalloff', 0);
-                this.addSlide(id, 'saturationMin', 0, 1, 2);
-                this.addSlide(id, 'saturationMax', 0, 1, 2);
-                this.addNumber(id, 'saturationMinFalloff', 0);
-                this.addNumber(id, 'saturationMaxFalloff', 0);
-                this.addSlide(id, 'lightnessMin', 0, 1, 2);
-                this.addSlide(id, 'lightnessMax', 0, 1, 2);
-                this.addNumber(id, 'lightnessMinFalloff', 0);
-                this.addNumber(id, 'lightnessMaxFalloff', 0);
-                this.addBool(id, 'mask');*/
             break;
             case 'crop':
                 this.addUIS(id, 'number', {name:'top', min:0, precision:0 });
                 this.addUIS(id, 'number', {name:'left', min:0, precision:0 });
                 this.addUIS(id, 'number', {name:'bottom', min:0, precision:0 });
                 this.addUIS(id, 'number', {name:'right', min:0, precision:0 });
-
-                /*this.addNumber(id, 'top', 0, 1);
-                this.addNumber(id, 'left', 0, 1);
-                this.addNumber(id, 'bottom', 0, 1);
-                this.addNumber(id, 'right', 0, 1);*/
             break;
             case 'daltonize': 
                 this.addUIS(id, 'list', {name:'type', list:['0.0', '0.2', '0.6', '0.8']});
-                //this.addList(id, 'type', ['0.0', '0.2', '0.6', '0.8']);
             break;
             case 'directionblur':
                 this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
                 this.addUIS(id, 'number', {name:'angle', min:-360, max:360, precision:0, isAngle:true});
-
-                //this.addSlide(id, 'amount', 0, 1, 2);
-                //this.addNumber(id, 'angle', 0, 360, 0, 1, true);
             break;
             case 'displacement':
                 this.addUIS(id, 'list', {name:'xChannel', list:['red', 'green', 'blue', 'alpha', 'luma', 'lightness', 'none' ]});
@@ -17596,32 +17530,16 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'number', {name:'offset', min:0, max:10, precision:2, step:0.01 });
                 this.addUIS(id, 'number', {name:'mapScale', min:0, precision:0 });
                 this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
-
-
-                /*this.addList(id, 'xChannel', ['red', 'green', 'blue', 'alpha', 'luma', 'lightness', 'none' ]);
-                this.addList(id, 'yChannel', ['red', 'green', 'blue', 'alpha', 'luma', 'lightness', 'none' ]);
-                this.addList(id, 'fillMode', ['color', 'wrap', 'clamp', 'ignore' ]);
-                this.addColor(id, 'color');
-                this.addNumber(id, 'offset', 0, 10, 2, 0.01);
-                this.addV2(id, 'mapScale');
-                this.addSlide(id, 'amount', 0, 1, 2);*/
             break;
-
-
-
-
             case 'dither': break;
             case 'edge': 
                 this.addUIS(id, 'list', {name:'mode', list:['sobel', 'frei-chen']});
-                //this.addList(id, 'mode', ['sobel', 'frei-chen']); 
             break;
             case 'emboss': 
                 this.addUIS(id, 'slide', {name:'amount', min:-255/3, max:255/3, precision:0});
-                //this.addSlide(id, 'amount', -255/3,  255/3, 0);
             break;
             case 'exposure': 
                 this.addUIS(id, 'slide', {name:'exposure', min:-8, max:8, precision:1});
-                //this.addSlide(id, 'exposure', -8,  8, 1); 
             break;
             case 'expression':
                 this.addUIS(id, 'number', {name:'a'});
@@ -17633,35 +17551,19 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'string', {name:'green'});
                 this.addUIS(id, 'string', {name:'blue'});
                 this.addUIS(id, 'string', {name:'alpha'});
-                /*this.addNumber(id, 'a', 0);
-                this.addNumber(id, 'b', 0);
-                this.addNumber(id, 'c', 0);
-                this.addNumber(id, 'd', 0);
-                this.addString(id, 'rgb');
-                this.addString(id, 'red');
-                this.addString(id, 'green');
-                this.addString(id, 'blue');
-                this.addString(id, 'alpha');*/
             break;
             case 'fader':
                 this.addUIS(id, 'color', {name:'color'});
                 this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
-                //this.addColor(id, 'color');
-                //this.addSlide(id, 'amount', 0, 1, 2);
             break;
             case 'falsecolor':
                 this.addUIS(id, 'color', {name:'black'});
                 this.addUIS(id, 'color', {name:'white'});
-                //this.addColor(id, 'black');
-                //this.addColor(id, 'white');
             break;
             case 'filmgrain':
                 this.addUIS(id, 'number', {name:'time'});
                 this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
                 this.addUIS(id, 'bool', {name:'colored'});
-                //this.addNumber(id, 'time');
-                //this.addSlide(id, 'amount', 0, 1, 2);
-                //this.addBool(id, 'colored');
             break;
             case 'freeze':
                 this.addUIS(id, 'bool', {name:'frozen'});
@@ -17673,35 +17575,23 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'number', {name:'transition'});
                 this.addUIS(id, 'bool', {name:'invert'});
                 this.addUIS(id, 'slide', {name:'smoothness', min:0, max:1, precision:2});
-                //this.addImage(id, 'gradient');
-                //this.addNumber(id, 'transition');
-                //this.addBool(id, 'invert');
-                //this.addSlide(id, 'smoothness', 0, 1, 2);
             break;
             case 'hex':
                 this.addUIS(id, 'slide', {name:'size', min:0, max:0.4, precision:2});
                 this.addUIS(id, 'number', {name:'center',precision:0});
-                //this.addSlide(id, 'size', 0, 0.4, 2);
-                //this.addV2(id, 'center');
             break;
             case 'highlights-shadows':
                 this.addUIS(id, 'slide', {name:'highlights', min:0, max:1, precision:2});
                 this.addUIS(id, 'slide', {name:'shadows', min:0, max:1, precision:2});
-                //this.addSlide(id, 'highlights', 0, 1, 2);
-                //this.addSlide(id, 'shadows', 0, 1, 2);
             break;
             case 'hue-saturation':
                 this.addUIS(id, 'slide', {name:'hue', min:-1, max:1, precision:2});
                 this.addUIS(id, 'slide', {name:'saturation', min:-1, max:1, precision:2});
-                //this.addSlide(id, 'hue', -1, 1, 2);
-                //this.addSlide(id, 'saturation', -1, 1, 2);
             break;
             case 'invert':break;
             case 'kaleidoscope':
                 this.addUIS(id, 'number', {name:'segments', precision:0});
                 this.addUIS(id, 'number', {name:'offset', precision:0});
-                //this.addNumber(id, 'segments');
-                //this.addNumber(id, 'offset');
             break;
             case 'layer':
                 this.addUIS(id, 'number', {name:'count', precision:0});
@@ -17711,17 +17601,11 @@ Serious.Editor.prototype = {
             case 'linear-transfer':
                 this.addUIS(id, 'number', {name:'slope'});
                 this.addUIS(id, 'number', {name:'intercept'});
-                //this.addV4(id, 'slope');
-                //this.addV4(id, 'intercept');
             break;
             case 'lumakey':
                 this.addUIS(id, 'slide', {name:'clipBlack', min:0, max:1, precision:2});
                 this.addUIS(id, 'slide', {name:'clipWhite', min:0, max:1, precision:2});
                 this.addUIS(id, 'bool', {name:'invert'});
-
-                //this.addSlide(id, 'clipBlack', 0, 1, 2);
-                //this.addSlide(id, 'clipWhite', 0, 1, 2);
-                //this.addBool(id, 'invert');
             break;
             case 'mirror': break;
             case 'nightvision':
@@ -17729,20 +17613,11 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'slide', {name:'luminanceThreshold', min:0, max:1, precision:2});
                 this.addUIS(id, 'number', {name:'amplification', min:0});
                 this.addUIS(id, 'color', {name:'color'});
-
-                //this.addNumber(id, 'timer');
-                //this.addSlide(id, 'luminanceThreshold', 0, 1, 2);
-                //this.addNumber(id, 'amplification', 0);
-                //this.addColor(id, 'color');
             break;
             case 'noise':
                 this.addUIS(id, 'bool', {name:'overlay'});
                 this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
                 this.addUIS(id, 'number', {name:'timer', min:0 });
-
-                //this.addBool(id, 'overlay');
-                //this.addSlide(id, 'amount', 0, 1, 2);
-                //this.addNumber(id, 'timer', NaN, 1);
             break;
             case 'panorama':
                 this.addUIS(id, 'number', {name:'width', min:0, precision:0});
@@ -17750,53 +17625,32 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'slide', {name:'yaw', min:0, max:360, precision:0});
                 this.addUIS(id, 'slide', {name:'fov', min:0, max:180, precision:0});
                 this.addUIS(id, 'slide', {name:'pitch', min:-90, max:90, precision:0});
-
-                //this.addNumber(id, 'width', 0, 1);
-                //this.addNumber(id, 'height', 0, 1);
-                //this.addSlide(id, 'yaw', 0, 360, 0);
-                //this.addSlide(id, 'fov', 0, 180, 0);
-                //this.addSlide(id, 'pitch', -90, 90, 0);
             break;
             case 'pixelate':
                 this.addUIS(id, 'number', {name:'pixelSize', min:0, precision:0});
-                //this.addV2(id, 'pixelSize', 0);
             break;
             case 'polar': 
-                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, isAngle:true})
-                //this.addSlide(id, 'angle', 0, 360, 0, 1, true); 
+                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, isAngle:true});
             break;
             case 'repeat':
                 this.addUIS(id, 'number', {name:'repeat', min:0, precision:0});
                 this.addUIS(id, 'number', {name:'width', min:0, precision:0});
                 this.addUIS(id, 'number', {name:'height', min:0, precision:0});
-
-                //this.addNumber(id, 'repeat', 0, 1);
-                //this.addNumber(id, 'width', 0, 1);
-                //this.addNumber(id, 'height', 0, 1);
             break;
             case 'ripple':
                 this.addUIS(id, 'number', {name:'wave', precision:2});
                 this.addUIS(id, 'number', {name:'distortion', precision:2});
                 this.addUIS(id, 'number', {name:'center'});
-                //his.addNumber(id, 'wave', 0, 1);
-                //this.addNumber(id, 'distortion', 0, 1);
-                //this.addV2(id, 'center');
             break;
             case 'scanlines':
                 this.addUIS(id, 'number', {name:'lines'});
                 this.addUIS(id, 'slide', {name:'size', min:0, max:1, precision:2});
                 this.addUIS(id, 'slide', {name:'intensity', min:0, max:1, precision:2});
-
-                //this.addNumber(id, 'lines');
-                //this.addSlide(id, 'size', 0, 1, 2);
-                //this.addSlide(id, 'intensity', 0, 1, 2);
             break;
             case 'select':
                 /// ? //// no SOURCE
                 this.addUIS(id, 'slide', {name:'active', min:0, max:3, precision:0});
                 this.addUIS(id, 'list', {name:'sizeMode', list:['union', 'intersection', 'active']});
-                //this.addSlide(id, 'active', 0, 3, 0);
-                //this.addList(id, 'sizeMode', ['union', 'intersection', 'active']);
             break;
             case 'sepia': break;
             case 'simplex':
@@ -17810,17 +17664,6 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'number', {name:'height', min:0});
                 this.addUIS(id, 'color', {name:'black'});
                 this.addUIS(id, 'color', {name:'white'});
-
-                /*this.addV2(id, 'noiseScale');
-                this.addV2(id, 'noiseOffset');
-                this.addSlide(id, 'octaves', 1, 8, 0);
-                this.addSlide(id, 'persistence', 0, 0.5, 2);
-                this.addSlide(id, 'amount', 0, 1, 2);
-                this.addNumber(id, 'time');
-                this.addNumber(id, 'width');
-                this.addNumber(id, 'height');
-                this.addColor(id, 'black');
-                this.addColor(id, 'white');*/
             break;
             case 'sketch': break;
             case 'split':
@@ -17828,14 +17671,8 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'slide', {name:'split', min:0, max:1, precision:2});
                 this.addUIS(id, 'number', {name:'angle', min:-360, max:360, isAngle:true});
                 this.addUIS(id, 'slide', {name:'fuzzy', min:0, max:1, precision:2});
-
-                //this.addList(id, 'sizeMode', ['a', 'b', 'union', 'intersection']);
-                //this.addSlide(id, 'split', 0, 1, 2);
-                //this.addNumber(id, 'angle', 0, 360, 0, 1, true);
-                //this.addSlide(id, 'fuzzy', 0, 1, 2);
             break;
             case 'throttle':
-                //this.addNumber(id, 'frameRate', 0);
                 this.addUIS(id, 'number', {name:'frameRate', min:0});
             break;
             case 'tone':
@@ -17843,10 +17680,6 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'color', {name:'dark'});
                 this.addUIS(id, 'slide', {name:'toned', min:0, max:1, precision:2 });
                 this.addUIS(id, 'slide', {name:'desat', min:0, max:1, precision:2 });
-                //this.addColor(id, 'light');
-                //this.addColor(id, 'dark');
-                //this.addSlide(id, 'toned', 0, 1, 2);
-                //this.addSlide(id, 'desat', 0, 1, 2);
             break;
             case 'tvglitch':
                 this.addUIS(id, 'slide', {name:'distortion', min:0, max:1, precision:2 });
@@ -17858,31 +17691,16 @@ Serious.Editor.prototype = {
                 this.addUIS(id, 'slide', {name:'frameLimit', min:-1, max:1, precision:2 });
                 this.addUIS(id, 'slide', {name:'frameSharpness', min:0, max:40, precision:1 });
                 this.addUIS(id, 'color', {name:'frameColor'});
-
-
-                /*this.addSlide(id, 'distortion', 0, 1, 2);
-                this.addSlide(id, 'verticalSync', 0, 1, 2);
-                this.addSlide(id, 'lineSync', 0, 1, 2);
-                this.addSlide(id, 'scanlines', 0, 1, 2);
-                this.addSlide(id, 'bars', 0, 1, 2);
-                this.addSlide(id, 'frameShape', 0, 2, 2);
-                this.addSlide(id, 'frameLimit', -1, 1, 2);
-                this.addSlide(id, 'frameSharpness', 0, 40, 1);
-                this.addColor(id, 'frameColor');*/
             break;
             case 'vignette':
                 this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2 });
-              //  this.addSlide(id, 'amount', 0, 1, 2); 
             break;
             case 'vibrance': 
                 this.addUIS(id, 'slide', {name:'amount', min:-1, max:1, precision:2 });
-                //this.addSlide(id, 'amount', -1, 1, 2); 
             break;
             case 'whitebalance':
                 this.addUIS(id, 'color', {name:'white'});
                 this.addUIS(id, 'bool', {name:'auto'});
-                //this.addColor(id, 'white');
-                //this.addBool(id, 'auto');
             break;
         }
     },
@@ -17891,12 +17709,6 @@ Serious.Editor.prototype = {
         this.select.style.display = 'none';
 
         if(this.ui)this.ui.clear();
-        //while(this.menu.firstChild) { this.menu.removeChild(this.menu.firstChild); }
-        /*var i = this.sels.length;
-        while(i--){ 
-            this.sels[i].clear(); 
-            this.sels.pop();
-        }*/
     },
 
     // FROM UIL
@@ -17919,67 +17731,6 @@ Serious.Editor.prototype = {
         this.ui.add(type, obj);
     },
 
-
-
-
-    /*addOption:function(id, name, list){
-        var callback = function(v){  }.bind(this);
-        this.sels.push( new UIL.List(this.bmenu, name, callback, name, list) );
-    },
-
-    addImage:function(id, name){
-
-    },
-
-    addTitle:function(id, type, prefix){
-        prefix = prefix || '';
-        var s = new UIL.Title( this.bmenu, type, id, prefix );
-        this.sels.push(s);
-    },
-    addString:function(id, name){
-        var node = this.tmp[this.LAYER].nodes[id];
-        var callback = function(v){ node.node[name] = v; }.bind(this);
-        //this.sels.push(new UIL.Number(this.menu, name, callback, this.nodes[id][name]));
-    },
-    addNumber:function(id, name, min, max, precision, step, isAngle){
-        var node = this.tmp[this.LAYER].nodes[id];
-        var callback = function(v){ node.node[name] = v; }.bind(this);
-        this.sels.push(new UIL.Number(this.bmenu, name, callback, node.node[name], min, max, precision, step, isAngle));
-    },
-    addV2:function(id, name, min, max, precision, step){
-        var node = this.tmp[this.LAYER].nodes[id];
-        var callback = function(v){ node.node[name]=v; }.bind(this);
-        this.sels.push( new UIL.Vector(this.bmenu, name, callback, node.node[name] ));
-    },
-    addV4:function(id, name, min, max, precision, step){
-    },
-    addColor:function(id, name){
-        var node = this.tmp[this.LAYER].nodes[id];
-        var callback = function(v){ node.node[name] = v; }.bind(this);
-        this.sels.push( new UIL.Color(this.bmenu, name, callback, node.node[name] ));
-    },
-    addBool:function(id, name){
-        var node = this.tmp[this.LAYER].nodes[id];
-        var callback = function(v){ node.node[name] = v; }.bind(this);
-        this.sels.push( new UIL.Bool(this.bmenu, name, callback, node.node[name] ));
-    },  
-    addList:function(id, name, list){
-        var node = this.tmp[this.LAYER].nodes[id];
-        var callback = function(v){ node.node[name] = v; }.bind(this);
-        this.sels.push( new UIL.List(this.bmenu, name, callback, node.node[name], list ));
-    },
-    addSlide:function(id, name, min, max, precision, step){
-        var node = this.tmp[this.LAYER].nodes[id];
-        var callback = function(v){ node.node[name] = v; }.bind(this);
-        this.sels.push( new UIL.Slide(this.bmenu, name, callback, node.node[name], min, max, precision, step ));
-    },
-    addURL:function(id){
-        var name = 'URL';
-        var node = this.tmp[this.LAYER].nodes[id];
-        var callback = function(v){  node.obj.src = v; node.node.src = v; }.bind(this);
-        var s = new UIL.String(this.bmenu, name, callback, node.obj.src, 'S' );
-        this.sels.push( s );
-    },*/
     addVideoURL:function(id){
         var name = 'URL';
         var node = this.tmp[this.LAYER].nodes[id];
@@ -18002,8 +17753,8 @@ Serious.Editor.prototype = {
                 node.node.src = v; 
             }
         }.bind(this);
-        var s = new UIL.String(this.bmenu, name, callback, node.obj.src , 'S');
-        this.sels.push( s );
+        //var s = new UIL.String(this.bmenu, name, callback, node.obj.src , 'S');
+        //this.sels.push( s );
     },
     /*addTextureLink:function(id){ //this.textures[obj.texture]
         var name = 'Texture';
