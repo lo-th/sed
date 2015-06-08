@@ -211,7 +211,7 @@ Serious.Editor.prototype = {
         this.body.appendChild( this.content );
         this.body.appendChild( this.menu );
         this.body.appendChild( this.bmenu );
-        this.ui = new UIL.Gui('height:calc(100% - 270px); position:absolute; right:0px; top:270px; pointer-events:auto; background:none; display:none; overflow:auto; overflow-x:hidden;');
+        this.ui = new UIL.Gui('right:0px; top:270px; display:none;');
         this.body.appendChild( this.rmenu );
 
         this.rmenu.appendChild( this.amenu );
