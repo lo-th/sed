@@ -96,8 +96,8 @@ Serious.Editor = function(autorun, canvas ){
     this.move = {name:'', element:null, down:false, test:false,  x:0,y:0, tx:0, ty:0, mx:0, my:0};
     this.nset = { 
         w:40, h:40, r:6, 
-        sc1:'rgba(120,60,30,0.5)', fc1:'rgba(30,120,60,0.5)', tc1:'rgba(30,60,120,0.5)', nc1:'rgba(30,30,30,0.5)',
-        sc2:'rgba(120,60,30,0.8)', fc2:'rgba(30,120,60,0.8)', tc2:'rgba(30,60,120,0.8)', nc2:'rgba(40,40,40,0.8)',
+        sc1:'rgba(120,48,68,0.66)', fc1:'rgba(48,120,68,0.66)', tc1:'rgba(48,68,120,0.66)', nc1:'rgba(48,48,48,0.66)',
+        sc2:'rgba(120,48,68,0.8)', fc2:'rgba(48,120,68,0.8)', tc2:'rgba(48,68,120,0.8)', nc2:'rgba(48,48,48,0.8)',
     };
 
     this.selectID = -1;
@@ -891,7 +891,7 @@ Serious.Editor.prototype = {
         var prefix = this.getPrefix(name);
         var type = this.getType(name);
 
-        this.addUIS(id, 'title', {id:id, name:type, prefix:prefix});
+        this.addUIS(id, 'title', {id:id, name:type, prefix:prefix, color:'G'});
 
        switch(type){
             case 'image': this.addUIS(id, 'string', {name:'src', color:'R'}); break;
