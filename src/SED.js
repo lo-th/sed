@@ -7,11 +7,11 @@
 
 'use strict';
 var Seriously, UIL;
-var Serious = { version:0.7 };
+var SED = { REVISION:0.2 };
 
-Serious.Sources = [ 'image', 'video', 'camera', 'scene', 'texture' ];
+SED.Sources = [ 'image', 'video', 'camera', 'scene', 'texture' ];
 
-Serious.Effects = [
+SED.Effects = [
     'accumulator',         'ascii',         'bleach-bypass',      'blend',       'blur', 
     'brightness-contrast', 'channels',      'checkerboard',       'chroma',      'color', 
 
@@ -31,9 +31,9 @@ Serious.Effects = [
     'whitebalance'
 ];
 
-Serious.Targets = [ 'texture-3D', 'canvas-3D' ];
+SED.Targets = [ 'texture-3D', 'canvas-3D' ];
 
-Serious.BlendMode = [
+SED.BlendMode = [
     'normal',      'lighten',     'darken',      'multiply',   'average',
     'add',         'subtract',    'divide',      'difference', 'negation', 
     'exclusion',   'screen',      'overlay',     'softlight',  'hardlight', 
@@ -43,9 +43,9 @@ Serious.BlendMode = [
     'darkercolor', 'lightercolor'
 ];
 
-Serious.BlendSizeMode = [ 'bottom', 'top', 'union', 'intersection' ];
+SED.BlendSizeMode = [ 'bottom', 'top', 'union', 'intersection' ];
 
-Serious.Editor = function(autorun, canvas ){
+SED.Editor = function(autorun, canvas ){
 
     this.body = document.body;
 
@@ -107,8 +107,8 @@ Serious.Editor = function(autorun, canvas ){
     this.init();
 }
 
-Serious.Editor.prototype = {
-    constructor: Serious.Editor,
+SED.Editor.prototype = {
+    constructor: SED.Editor,
     showInterface:function(b){
         if(b){
             if( this.current !== 'close' )this.menu.style.display = 'block';
@@ -130,59 +130,59 @@ Serious.Editor.prototype = {
     },
     init:function(){
         var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; font-family:Helvetica, Arial, sans-serif; font-size:12px; color:#e2e2e2;';
-        Serious.createClass('S-editor', 'width:40px; height:40px; position:absolute; right:10px; top:20px; border:5px solid #282828; cursor:move; overflow:hidden; background:#1a1a1a;' + str );
-        Serious.createClass('S-editor:hover', 'box-shadow:inset 0 0 0 1px #000');
+        SED.CC('S-editor', 'width:40px; height:40px; position:absolute; right:10px; top:20px; border:5px solid #282828; cursor:move; overflow:hidden; background:#1a1a1a;' + str );
+        SED.CC('S-editor:hover', 'box-shadow:inset 0 0 0 1px #000');
 
-        Serious.createClass('S-icc', 'position:absolute; left:-5px; top:-4px; text-align:center; width:40px; height:40px; pointer-events:none;'+ str);
+        SED.CC('S-icc', 'position:absolute; left:-5px; top:-4px; text-align:center; width:40px; height:40px; pointer-events:none;'+ str);
 
-        Serious.createClass('S-grid','position:absolute; left:0px; top:0px; pointer-events:none; width:'+this.gridsize.x+'px; height:'+this.gridsize.y+'px;'+ str);
-        Serious.createClass('S-grid-plus', 'position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
+        SED.CC('S-grid','position:absolute; left:0px; top:0px; pointer-events:none; width:'+this.gridsize.x+'px; height:'+this.gridsize.y+'px;'+ str);
+        SED.CC('S-grid-plus', 'position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
 
-        Serious.createClass('S-menu', 'width:300px; height:20px; position:absolute; right:0px; top:0px; pointer-events:auto; background:#282828; display:none; '+ str);
-        //Serious.createClass('S-bmenu', 'width:300px; height:calc(100% - 270px); position:absolute; right:0px; top:270px; pointer-events:none; background:none; display:none; overflow:auto; overflow-x:hidden;'+ str);
-        Serious.createClass('S-rmenu', 'width:300px; height:50px; position:absolute; right:0px; top:270px; pointer-events:none; background:#282828; display:none;'+ str);
-        Serious.createClass('S-amenu', 'width:300px; height:auto; position:absolute; padding:3px; right:0px; top:50px; pointer-events:none; background:#282828; display:none; text-align:center;'+ str);
+        SED.CC('S-menu', 'width:300px; height:20px; position:absolute; right:0px; top:0px; pointer-events:auto; background:#282828; display:none; '+ str);
+        //SED.CC('S-bmenu', 'width:300px; height:calc(100% - 270px); position:absolute; right:0px; top:270px; pointer-events:none; background:none; display:none; overflow:auto; overflow-x:hidden;'+ str);
+        SED.CC('S-rmenu', 'width:300px; height:50px; position:absolute; right:0px; top:270px; pointer-events:none; background:#282828; display:none;'+ str);
+        SED.CC('S-amenu', 'width:300px; height:auto; position:absolute; padding:3px; right:0px; top:50px; pointer-events:none; background:#282828; display:none; text-align:center;'+ str);
 
         // node
-        Serious.createClass('S-S', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.sc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
-        Serious.createClass('S-E', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.fc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
-        Serious.createClass('S-T', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.tc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
+        SED.CC('S-S', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.sc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
+        SED.CC('S-E', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.fc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
+        SED.CC('S-T', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; background:'+this.nset.tc1+'; border-radius:'+this.nset.r+'px; cursor:default; pointer-events:auto;'+ str);
         // node over
-        Serious.createClass('S-S:hover', 'background:'+this.nset.sc2+'; ');
-        Serious.createClass('S-E:hover', 'background:'+this.nset.fc2+'; ');
-        Serious.createClass('S-T:hover', 'background:'+this.nset.tc2+'; ');
+        SED.CC('S-S:hover', 'background:'+this.nset.sc2+'; ');
+        SED.CC('S-E:hover', 'background:'+this.nset.fc2+'; ');
+        SED.CC('S-T:hover', 'background:'+this.nset.tc2+'; ');
         // node icon
-        Serious.createClass('S-icon', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
+        SED.CC('S-icon', 'width:'+this.nset.w+'px; height:'+this.nset.h+'px; position:absolute; left:0px; top:0px; pointer-events:none;'+ str);
         // selected
-        Serious.createClass('S-select', 'margin-left:-1px; margin-top:-1px; width:'+(this.nset.w+2)+'px; height:'+(this.nset.h+2)+'px; position:absolute; border:2px solid #FFF; border-radius:'+(this.nset.r+1)+'px; display:none; pointer-events:none;'+ str);
+        SED.CC('S-select', 'margin-left:-1px; margin-top:-1px; width:'+(this.nset.w+2)+'px; height:'+(this.nset.h+2)+'px; position:absolute; border:2px solid #FFF; border-radius:'+(this.nset.r+1)+'px; display:none; pointer-events:none;'+ str);
         // link
-        Serious.createClass('S-in', 'width:8px; height:8px; position:absolute; left:16px; top:-4px; border:2px solid #0F0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;'+ str);
-        Serious.createClass('S-out', 'width:8px; height:8px; position:absolute; left:16px; bottom:-4px; border:2px solid #FF0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;'+ str);
+        SED.CC('S-in', 'width:8px; height:8px; position:absolute; left:16px; top:-4px; border:2px solid #0F0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;'+ str);
+        SED.CC('S-out', 'width:8px; height:8px; position:absolute; left:16px; bottom:-4px; border:2px solid #FF0; background:#000; border-radius:8px; cursor:alias; pointer-events:auto;'+ str);
 
-        Serious.createClass('S-closeButton', 'position:absolute; left:0px; top:0px; width:25px; height:20px; font-size:14px; padding-top:5px; background:#none; pointer-events:auto; cursor:pointer; text-align:center;');
-        Serious.createClass('S-closeButton:hover', 'background:#422; color:#F00;');
+        SED.CC('S-closeButton', 'position:absolute; left:0px; top:0px; width:25px; height:20px; font-size:14px; padding-top:5px; background:#none; pointer-events:auto; cursor:pointer; text-align:center;');
+        SED.CC('S-closeButton:hover', 'background:#422; color:#F00;');
 
-        Serious.createClass('S-sideButton', 'position:absolute; width:29px; height:20px; padding-top:5px; background:#282828; pointer-events:auto; cursor:pointer; font-size:14px; text-align:center; border-left:1px solid #333; color:#e2e2e2;');
-        Serious.createClass('S-sideButton:hover', 'background:#404040;');
-        Serious.createClass('S-sideButton-select:hover', 'background:#404040;');
-        Serious.createClass('sideselect', ' background:#1a1a1a; color:#F0F; height:22px; border-right:1px solid #000;');
+        SED.CC('S-sideButton', 'position:absolute; width:29px; height:20px; padding-top:5px; background:#282828; pointer-events:auto; cursor:pointer; font-size:14px; text-align:center; border-left:1px solid #333; color:#e2e2e2;');
+        SED.CC('S-sideButton:hover', 'background:#404040;');
+        SED.CC('S-sideButton-select:hover', 'background:#404040;');
+        SED.CC('sideselect', ' background:#1a1a1a; color:#F0F; height:22px; border-right:1px solid #000;');
 
-        Serious.createClass('root-button', 'position:absolute; left:10px; top:0px; width:26px; height:26px; border:1px solid #333; pointer-events:auto; cursor:pointer; overflow: hidden;'+ str);
-        Serious.createClass('root-button-inner', 'position:absolute; left:-8px; top:-8px; pointer-events:none;')
-        Serious.createClass('root-button:hover', 'background:#F0F;');
-        Serious.createClass('root-button.select', 'background:#808;');
+        SED.CC('root-button', 'position:absolute; left:10px; top:0px; width:26px; height:26px; border:1px solid #333; pointer-events:auto; cursor:pointer; overflow: hidden;'+ str);
+        SED.CC('root-button-inner', 'position:absolute; left:-8px; top:-8px; pointer-events:none;')
+        SED.CC('root-button:hover', 'background:#F0F;');
+        SED.CC('root-button.select', 'background:#808;');
 
-        Serious.createClass('root-text', 'position:absolute; left:10px; top:28px; width:280px; height:18px; pointer-events:none; padding-top:2px; padding-left:10px; background:rgba(0,0,0,0.2);'+ str);
+        SED.CC('root-text', 'position:absolute; left:10px; top:28px; width:280px; height:18px; pointer-events:none; padding-top:2px; padding-left:10px; background:rgba(0,0,0,0.2);'+ str);
 
 
-        Serious.createClass('saveout', 'pointer-events:auto; cursor: pointer; width:90px; height:20px; position:absolute; top:6px; left: 132px; color:#F80; text-decoration:none;');
+        SED.CC('saveout', 'pointer-events:auto; cursor: pointer; width:90px; height:20px; position:absolute; top:6px; left: 132px; color:#F80; text-decoration:none;');
 
-        Serious.createClass('hidden', 'opacity: 0; -moz-opacity: 0; filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0)');
-        Serious.createClass('fileInput', 'cursor:pointer; height: 100%; position:absolute; top: 0; right: 0; font-size:50px;');
+        SED.CC('hidden', 'opacity: 0; -moz-opacity: 0; filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0)');
+        SED.CC('fileInput', 'cursor:pointer; height: 100%; position:absolute; top: 0; right: 0; font-size:50px;');
 
-        Serious.createClass('mini-button', 'width:30px; height:30px; position:relative; margin-top:-3px; display:inline-block; background:#0F0; border:2px solid #282828; pointer-events:auto; cursor:pointer; border-radius:3px; overflow: hidden;'+ str);
-        Serious.createClass('mini-button:hover', 'border:2px solid #e2e2e2;');
-        Serious.createClass('mini-button-inner', 'position:absolute; left:-2px; top:-2px; pointer-events:none;');
+        SED.CC('mini-button', 'width:30px; height:30px; position:relative; margin-top:-3px; display:inline-block; background:#0F0; border:2px solid #282828; pointer-events:auto; cursor:pointer; border-radius:3px; overflow: hidden;'+ str);
+        SED.CC('mini-button:hover', 'border:2px solid #e2e2e2;');
+        SED.CC('mini-button-inner', 'position:absolute; left:-2px; top:-2px; pointer-events:none;');
 
         this.content = this.element('S-editor');
         this.content.name = 'root';
@@ -203,7 +203,7 @@ Serious.Editor.prototype = {
         this.gridBottom.height = this.gridsize.y;
         this.gridBottom.style.display = 'none';
         this.linkcontext = this.gridBottom.getContext('2d');
-        this.icc.innerHTML = Serious.Logo(36, '#e2e2e2');
+        this.icc.innerHTML = SED.Logo(36, '#e2e2e2');
 
         this.initMenu();
         this.initRootMenu();
@@ -275,7 +275,7 @@ Serious.Editor.prototype = {
         this.content.style.right = '0px';
         this.content.style.top = '20px';
 
-        this.icc.innerHTML = Serious.Logo(256, '#111');
+        this.icc.innerHTML = SED.Logo(256, '#111');
         this.icc.style.top = '-7px';
         this.icc.style.left = '20px';
 
@@ -316,7 +316,7 @@ Serious.Editor.prototype = {
 
         this.grid.style.background = 'none';
 
-        this.icc.innerHTML = Serious.Logo(36, '#e2e2e2');
+        this.icc.innerHTML = SED.Logo(36, '#e2e2e2');
         this.icc.style.top = '-4px';
         this.icc.style.left = '-5px';
 
@@ -421,6 +421,7 @@ Serious.Editor.prototype = {
         this.isAddMenu = false;
         this.rText = this.element('root-text');
         this.rmenu.appendChild(this.rText);
+        this.tell();
 
         this.addB = this.element('root-button', 'div');
         this.loadB = this.element('root-button', 'div', 'left:40px');
@@ -459,43 +460,43 @@ Serious.Editor.prototype = {
             b = this.element('root-button-inner');
             switch(i){
                 case 0 :
-                b.innerHTML = Serious.Icon('add');
+                b.innerHTML = SED.Icon('add');
                 this.addB.appendChild(b);
                 break;
                 case 1 :
-                b.innerHTML = Serious.Icon('load');
+                b.innerHTML = SED.Icon('load');
                 this.loadB.appendChild(b);
                 break;
                 case 2 :
-                b.innerHTML = Serious.Icon('save');
+                b.innerHTML = SED.Icon('save');
                 this.saveB.appendChild(b);
                 break;
             }
         }
 
         var bb = [], name;
-        for(i=0; i<Serious.Sources.length; i++){
+        for(i=0; i<SED.Sources.length; i++){
             b = this.element('mini-button', 'div', 'background:'+this.nset.sc1+';');
-            b.name = Serious.Sources[i];
+            b.name = SED.Sources[i];
             bb.push(b);
         }
-        for(i=0; i<Serious.Effects.length; i++){
-            name = Serious.Effects[i];
+        for(i=0; i<SED.Effects.length; i++){
+            name = SED.Effects[i];
             if(name == 'colorcube' || name == 'channels' || name == 'layer' || name == 'select') b = this.element('mini-button', 'div', 'background:'+this.nset.nc1+';');
             else b = this.element('mini-button', 'div', 'background:'+this.nset.fc1+';');
             b.name = name;
             bb.push(b);
         }
-        for(i=0; i<Serious.Targets.length; i++){
+        for(i=0; i<SED.Targets.length; i++){
             b = this.element('mini-button', 'div', 'background:'+this.nset.tc1+';');
-            b.name = Serious.Targets[i];
+            b.name = SED.Targets[i];
             bb.push(b);
         }
 
         for(i=0; i<bb.length; i++){
             b = bb[i];
             c = this.element('mini-button-inner');
-            c.innerHTML = Serious.Icon(b.name, 30);
+            c.innerHTML = SED.Icon(b.name, 30);
             b.appendChild(c);
             this.amenu.appendChild(b);
             b.onmousedown = function(e) { this.addItem(e.target.name); }.bind(this);
@@ -506,7 +507,7 @@ Serious.Editor.prototype = {
     },
 
     tell:function(string){
-        if(!string) string = 'Seriously editor v' + Serious.version;
+        if(!string) string = 'Sed v' + SED.REVISION;
         this.rText.innerHTML = string;
     },
 
@@ -721,7 +722,7 @@ Serious.Editor.prototype = {
         this.nodesDiv[id] = node;
 
         var icon = this.element('S-icon');
-        icon.innerHTML =  Serious.Icon(type);
+        icon.innerHTML =  SED.Icon(type);
         node.appendChild(icon);
         node.style.left = this.tmp[this.LAYER].nodes[id].x + 'px';
         node.style.top = this.tmp[this.LAYER].nodes[id].y + 'px';
@@ -785,7 +786,7 @@ Serious.Editor.prototype = {
         var obj = {source:source, target:target, sourceN:sn || 0, targetN:sn || 0};
         if(obj.source!==-1 && obj.target!==-1){
             this.testIfExist();
-            var link = new Serious.Link(this, obj);
+            var link = new SED.Link(this, obj);
             //this.links.push(link);
             //this.TMP[n].links.push(link);
             this.tmp[layer].links.push(link);
@@ -802,7 +803,7 @@ Serious.Editor.prototype = {
         }
     },
     createLink:function(obj){
-        var link = new Serious.Link(this, obj);
+        var link = new SED.Link(this, obj);
         link.apply();
         this.tmp[this.LAYER].links.push(link);
         this.updateLink();
@@ -881,9 +882,9 @@ Serious.Editor.prototype = {
     showRootMenu:function(){
         this.rmenu.style.display = 'block';
         //this.addTitle('', 'SERIOUSLY ROOT' );
-        //this.addOption(0, 'source', Serious.Sources);
-        //this.addOption(1, 'effect', Serious.Effects);
-        //this.addOption(2, 'target', Serious.Targets);
+        //this.addOption(0, 'source', SED.Sources);
+        //this.addOption(1, 'effect', SED.Effects);
+        //this.addOption(2, 'target', SED.Targets);
     },
     showSelector:function(name){
 
@@ -898,7 +899,7 @@ Serious.Editor.prototype = {
             case 'texture-3D': this.addUIS(id, 'string', {name:'texture', color:'B'}); break;
             case 'accumulator':
                 this.addUIS(id, 'slide', {name:'opacity', min:0, max:1, precision:2 });
-                this.addUIS(id, 'list', {name:'blendMode', list:Serious.BlendMode});
+                this.addUIS(id, 'list', {name:'blendMode', list:SED.BlendMode});
                 this.addUIS(id, 'bool', {name:'clear'});
             break;
             case 'ascii':
@@ -909,8 +910,8 @@ Serious.Editor.prototype = {
             break;
             case 'blend':
                 this.addUIS(id, 'slide', {name:'opacity', min:0, max:1, precision:2 });
-                this.addUIS(id, 'list', {name:'mode', list:Serious.BlendMode});
-                this.addUIS(id, 'list', {name:'sizeMode', list:Serious.BlendSizeMode});
+                this.addUIS(id, 'list', {name:'mode', list:SED.BlendMode});
+                this.addUIS(id, 'list', {name:'sizeMode', list:SED.BlendSizeMode});
             break;
             case 'blur': 
                 this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2 });
@@ -1374,13 +1375,13 @@ Serious.Editor.prototype = {
 // LINK
 //--------------------
 
-Serious.Link = function(root, obj){
+SED.Link = function(root, obj){
     this.pos = [0,0,0,0];
     this.root = root;
     this.obj = obj;
 }
-Serious.Link.prototype = {
-    constructor: Serious.Link,
+SED.Link.prototype = {
+    constructor: SED.Link,
     getLink:function(){
         return [this.obj.target, this.obj.source, this.obj.targetN, this.obj.sourceN];
     },
@@ -1476,7 +1477,7 @@ Serious.Link.prototype = {
 // CSS CLASS
 //--------------------
 
-Serious.createClass = function(name,rules){
+SED.CC = function(name,rules){
     var adds = '.';
     if(name == '*') adds = '';
     var style = document.createElement('style');
@@ -1492,7 +1493,7 @@ Serious.createClass = function(name,rules){
 //  SVG ICON
 //--------------------
 
-Serious.Icon = function(type, size, color){
+SED.Icon = function(type, size, color){
     color = color || '#FFF';
     var width = size || 40;
     var Kwidth = '0 0 40 40';
@@ -1529,7 +1530,7 @@ Serious.Icon = function(type, size, color){
 
 // LOGO SVG
 
-Serious.Logo = function(size, color){
+SED.Logo = function(size, color){
     color = color || '#FFF';
     var width = size || 36;
     var Kwidth = '0 0 256 256';

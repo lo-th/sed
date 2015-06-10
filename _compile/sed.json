@@ -64,5 +64,5 @@
     "src/effects/seriously.whitebalance.js",
     "src/transforms/seriously.camerashake.js",
     "src/transforms/seriously.transform3d.js",
-    "src/seriousEditor.js"
+    "src/SED.js"
 ]
