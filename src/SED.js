@@ -129,7 +129,7 @@ SED.Editor.prototype = {
         return dom;
     },
     init:function(){
-        var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; font-family:Helvetica, Arial, sans-serif; font-size:12px; color:#e2e2e2;';
+        var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; font-family:"Open Sans", sans-serif; font-size:12px; font-size:12px; color:#e2e2e2;';
         SED.CC('S-editor', 'width:40px; height:40px; position:absolute; right:10px; top:20px; border:5px solid #282828; cursor:move; overflow:hidden; background:#1a1a1a;' + str );
         SED.CC('S-editor:hover', 'box-shadow:inset 0 0 0 1px #000');
 
