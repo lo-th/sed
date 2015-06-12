@@ -17466,8 +17466,8 @@ SED.Editor.prototype = {
                 this.addUIS(id, 'list', {name:'alpha', list:l});
             break;
             case 'checkerboard':
-                this.addUIS(id, 'number', {name:'anchor'});
-                this.addUIS(id, 'number', {name:'size'});
+                this.addUIS(id, 'number', {name:'anchor', precision:0});
+                this.addUIS(id, 'number', {name:'size', precision:0});
                 this.addUIS(id, 'color', {name:'color1'});
                 this.addUIS(id, 'color', {name:'color2'});
                 this.addUIS(id, 'number', {name:'width', min:0, precision:0 });
@@ -17521,7 +17521,7 @@ SED.Editor.prototype = {
             break;
             case 'directionblur':
                 this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
-                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, precision:0, isAngle:true});
+                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, isAngle:true, precision:0});
             break;
             case 'displacement':
                 this.addUIS(id, 'list', {name:'xChannel', list:['red', 'green', 'blue', 'alpha', 'luma', 'lightness', 'none' ]});
@@ -17631,7 +17631,7 @@ SED.Editor.prototype = {
                 this.addUIS(id, 'number', {name:'pixelSize', min:0, precision:0});
             break;
             case 'polar': 
-                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, isAngle:true});
+                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, isAngle:true, precision:0});
             break;
             case 'repeat':
                 this.addUIS(id, 'number', {name:'repeat', min:0, precision:0});
@@ -17670,7 +17670,7 @@ SED.Editor.prototype = {
             case 'split':
                 this.addUIS(id, 'list', {name:'sizeMode', list:['a', 'b', 'union', 'intersection']});
                 this.addUIS(id, 'slide', {name:'split', min:0, max:1, precision:2});
-                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, isAngle:true});
+                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, isAngle:true, precision:0});
                 this.addUIS(id, 'slide', {name:'fuzzy', min:0, max:1, precision:2});
             break;
             case 'throttle':

@@ -983,7 +983,7 @@ SED.Editor.prototype = {
             break;
             case 'directionblur':
                 this.addUIS(id, 'slide', {name:'amount', min:0, max:1, precision:2});
-                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, precision:0, isAngle:true, precision:0});
+                this.addUIS(id, 'number', {name:'angle', min:-360, max:360, isAngle:true, precision:0});
             break;
             case 'displacement':
                 this.addUIS(id, 'list', {name:'xChannel', list:['red', 'green', 'blue', 'alpha', 'luma', 'lightness', 'none' ]});
