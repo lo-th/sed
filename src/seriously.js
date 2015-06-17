@@ -995,7 +995,7 @@
 				info: gl.getActiveUniform(program, i)
 			};
 
-			obj.name = obj.info.name;
+			obj.name = obj.info.name.replace(/\[0\]$/, '');
 			obj.loc = gl.getUniformLocation(program, obj.name);
 			obj.set = makeShaderSetter(obj.info, obj.loc);
 			obj.get = makeShaderGetter(obj.loc);
@@ -1284,6 +1284,9 @@
 				node.texture = null;
 				if (node.shader && node.shader.destroy) {
 					node.shader.destroy();
+					if (node.effect.commonShader) {
+						delete commonShaders[node.hook];
+					}
 				}
 				node.shaderDirty = true;
 				node.shader = null;
@@ -2200,6 +2203,7 @@
 		};
 
 		EffectNode.prototype = Object.create(Node.prototype);
+		EffectNode.prototype.constructor = EffectNode;
 
 		EffectNode.prototype.initialize = function () {
 			if (!this.initialized) {
@@ -3271,6 +3275,7 @@
 		};
 
 		SourceNode.prototype = Object.create(Node.prototype);
+		SourceNode.prototype.constructor = SourceNode;
 
 		SourceNode.prototype.initialize = function () {
 			var texture;
@@ -3811,6 +3816,7 @@
 		};
 
 		TargetNode.prototype = Object.create(Node.prototype);
+		TargetNode.prototype.constructor = TargetNode;
 
 		TargetNode.prototype.setSource = function (source) {
 			var newSource;
@@ -4190,7 +4196,7 @@
 			// attach methods
 			for (key in me.methods) {
 				if (me.methods.hasOwnProperty(key)) {
-					this[key] = makeMethod(me.methods[key].bind(me));
+					this[key] = makeMethod(me.methods[key]);
 				}
 			}
 
@@ -4390,6 +4396,7 @@
 		};
 
 		TransformNode.prototype = Object.create(Node.prototype);
+		TransformNode.prototype.constructor = TransformNode;
 
 		TransformNode.prototype.setDirty = function () {
 			this.renderDirty = true;
@@ -4726,7 +4733,9 @@
 			options = options || {};
 		}
 
-		//if (options.canvas) { }
+		if (options.canvas) {
+			console.log('canvas', options.canvas)
+		}
 
 		/*
 		priveleged methods
@@ -4886,8 +4895,8 @@
 				descriptor;
 
 			while (nodes.length) {
-				node = nodes.shift();
-				node.destroy();
+				node = nodes[0];
+				node.pub.destroy();
 			}
 
 			for (i in this) {
@@ -6401,7 +6410,6 @@
 	todo: additional transform node types
 	- perspective
 	- matrix
-	- crop? - maybe not - probably would just scale.
 	*/
 
 	baseVertexShader = [

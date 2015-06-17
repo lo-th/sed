@@ -14,7 +14,7 @@ body { font-family:'Open Sans', sans-serif; background:#222; font-size:12px; col
 #canvas { position:absolute; pointer-events:auto; width:100%; height:100%;}
 </style>
 <script type="text/javascript" src="js/libs/three.min.js"></script>
-<script type="text/javascript" src="build/seriously.js"></script>
+<script type="text/javascript" src="build/seriously.min.js"></script>
 <script type="text/javascript" src="js/uil.min.js"></script>
 <script type="text/javascript" src="src/SED.js"></script>
 <script type="text/javascript" src="js/V.3d.js"></script>
@@ -22,16 +22,15 @@ body { font-family:'Open Sans', sans-serif; background:#222; font-size:12px; col
 
 <body>
 <canvas id='canvas'></canvas>
+
 <div id='version'></div>
 <div id='debug'></div>
 <script>
 
-var bgcolor = '#333333';
-document.body.style.background = bgcolor;
-
+var bgcolor = '333333';
+document.body.style.background = '#'+ bgcolor;
 var canvas = document.getElementById('canvas');
 var debug = document.getElementById('debug');
-
 document.getElementById('version').innerHTML = 'Sed '+SED.REVISION;
 
 // init three viewer
@@ -40,41 +39,6 @@ var v = new V.View(90, 90, 25, 60, null);
 // init seriously editor
 var s = new SED.Editor( true, v );
 
-s.add('canvas', {n:'s0'});
-s.add('scene', {n:'t0'});
-
-
-s.textures['tx1'] = v.addSeriousTexture();
-
-s.add('texture', { n:'t1', texture: 'tx1' }  );
-s.add('image', {n:'s1', src:'images/akira.jpg'});
-
-s.add('canvas', {n:'s0'}, 2);
-s.add('scene', {n:'t0'}, 2);
-
-
-//s.textures['tx1'] = v.addSeriousTexture();
-
-s.add('texture', { n:'t1', texture: 'tx1' } ,2 );
-s.add('image', {n:'s1', src:'images/moeb.jpg'}, 2);
-
-
-s.addLink('t0', 's0');
-s.addLink('s1', 't1');
-
-s.addLink('t0', 's0',0,0,2);
-s.addLink('s1', 't1',0,0,2);
-//s.add('texture', { n:'t0', texture: 'tx1' }, 3);
-
-
-
-
-v.addSphere(s.textures['tx1']);
-
-s.refreshOnly(0, true);
-//v.addSphere();
-
-/*
 // create three textures
 s.textures['tx1'] = v.addSeriousTexture();
 s.textures['tx2'] = v.addSeriousTexture();
@@ -131,7 +95,7 @@ function loop(){
     //
     v.renderer.setClearColor( ('0x'+bgcolor)*1, 1 );
     v.render();
-}*/
+}
 
 </script>
 </body>

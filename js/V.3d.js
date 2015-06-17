@@ -1,8 +1,8 @@
-/**   _     _   _     
-*    | |___| |_| |__
-*    | / _ \  _|    |
-*    |_\___/\__|_||_|
-*    @author LoTh / http://lo-th.github.io/labs/
+/**   _   _____ _   _   
+*    | | |_   _| |_| |
+*    | |_ _| | |  _  |
+*    |___|_|_| |_| |_| 2015
+*    @author lo.th / http://lo-th.github.io/labs/
 */
 
 var canvas, info, debug;
@@ -32,18 +32,21 @@ V.rand = function (a, b, n) { return V.lerp(a, b, Math.random()).toFixed(n || 3)
 V.randInt = function (a, b, n) { return V.lerp(a, b, Math.random()).toFixed(n || 0)*1;}
 V.randColor = function () { return '#'+Math.floor(Math.random()*16777215).toString(16);}
 
+V.hexFormat = function(v){ return Number(v.toUpperCase().replace("#", "0x")); };
+
 V.MeshList = [ 'plane', 'sphere', 'skull', 'skullhigh', 'head', 'woman', 'babe'];
 V.Main = null;
 
-V.View = function(h,v,d,f, emvmap){
+V.View = function(h,v,d,f){
 
-    this.emvmap = emvmap || null;
+    this.seriousSource = false;
+
+    //this.emvmap = emvmap || null;
 
     this.dimentions = {w:window.innerWidth,  h:window.innerHeight, r:window.innerWidth/window.innerHeight };
 
 	this.canvas = canvas;
-    this.debug = debug;
-    //this.info = info;
+    //this.debug = debug;
 
     
 
@@ -51,28 +54,37 @@ V.View = function(h,v,d,f, emvmap){
 
     this.scene = new THREE.Scene();
     this.nav = new V.Nav(this,h,v,d,f);
+    this.nav.initEvents();
+    this.camera = this.nav.camera;
 
-    if(this.emvmap!==null){
+    /*if(this.emvmap!==null){
         this.environment = THREE.ImageUtils.loadTexture( 'textures/'+ this.emvmap);
         this.environment.mapping = THREE.SphericalReflectionMapping;
-    }
+    }*/
 
-    this.renderer = new THREE.WebGLRenderer({ precision:"mediump", canvas:canvas, antialias:true, alpha:false });
+     
+
+    //this.renderer = new THREE.WebGLRenderer({ precision:"mediump", context:context, antialias:true, alpha:false });
+
+    this.renderer = new THREE.WebGLRenderer({ precision:"mediump", canvas:this.canvas, antialias:false, alpha:false });
     this.renderer.setSize( this.dimentions.w, this.dimentions.h );
     this.renderer.setPixelRatio( window.devicePixelRatio );
-    this.renderer.setClearColor( ('0x'+bgcolor)*1, 1 );
+    this.renderer.setClearColor( V.hexFormat(bgcolor), 1 );
     this.renderer.autoClear = true;
 
     //this.renderer.gammaInput = true;
     //this.renderer.gammaOutput = true;
 
     this.seriousTextures = [];
+    this.textureSerious = null;
+    this.txtSetting = { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat};
 
 
 
-    this.f = [0,0,0,0];
+    //this.f = [0,0,0,0];
 
-	window.onresize = function(e) {this.resize(e)}.bind(this);
+	//window.onresize = function(e) {this.resize(e)}.bind(this);
+    //window.addEventListener("resize", function(e) {this.resize(e)}.bind(this) );
 }
 
 V.View.prototype = {
@@ -83,29 +95,70 @@ V.View.prototype = {
         while(i--){
             this.renderer.setRenderTarget(this.seriousTextures[i]);
         }
-        if(t) this.renderer.resetGLState();
+        if(t)this.renderer.resetGLState();
 
         
         
         // render
-        this.renderer.render( this.scene, this.nav.camera );
+        //this.renderer.render( this.scene, this.camera );
 
-        var f = this.f;
-        f[0] = Date.now();
-        if (f[0]-1000 > f[1]){ f[1] = f[0]; f[3] = f[2]; f[2] = 0; } f[2]++;
+        if(this.seriousSource){
+            //this.renderer.setRenderTarget(null);
+            //this.renderer.resetGLState();
+            //v.renderer.setClearColor( ('0x'+bgcolor)*1, 1 )
+            this.renderer.setClearColor( V.hexFormat(bgcolor), 1 );
+            this.renderer.render( this.scene, this.camera, this.textureSerious, true);          
+            //this.seriousEditor.byID(0).update();
+            //this.seriousEditor.render();
+            
+        } else {
+            this.renderer.render( this.scene, this.camera );
+        }
+
+        //var f = this.f;
+        //f[0] = Date.now();
+        //if (f[0]-1000 > f[1]){ f[1] = f[0]; f[3] = f[2]; f[2] = 0; } f[2]++;
 
         //this.debug.innerHTML ='THREE ' + f[3];
     },
-    resize:function(){
-        this.dimentions.w = window.innerWidth;
-        this.dimentions.h = window.innerHeight;
-        this.dimentions.r = this.dimentions.w/this.dimentions.h;
-        this.renderer.setSize( this.dimentions.w, this.dimentions.h );
+    resize:function(dimentions){
+        this.dimentions = dimentions;
+        //this.dimentions.w = w;//window.innerWidth;
+        //this.dimentions.h = h;//window.innerHeight;
+        //this.dimentions.r = r;//this.dimentions.w/this.dimentions.h;
+        if(this.renderer)this.renderer.setSize( this.dimentions.w, this.dimentions.h );
         this.nav.camera.aspect = this.dimentions.r;
         this.nav.camera.updateProjectionMatrix();
+
+        if(this.seriousSource){
+          
+            //this.textureSerious.dispose();
+            this.textureSerious = new THREE.WebGLRenderTarget( this.dimentions.w, this.dimentions.h, this.txtSetting );
+            this.textureSerious.generateMipmaps = false;
+           
+            //this.seriousEditor.addOnAll('texture', {id:0, texture:this.textureSerious});
+
+            //this.seriousEditor.byID(1).width = this.dimentions.w;
+            //this.seriousEditor.byID(1).height = this.dimentions.h;
+
+            //this.seriousEditor.applyLinks();
+
+
+        }
+
+        //console.log("threeResize")
+
+    },
+    addSeriousSource:function(){
+        this.textureSerious = new THREE.WebGLRenderTarget( this.dimentions.w, this.dimentions.h, this.txtSetting );
+        this.textureSerious.generateMipmaps = false;
+
+        this.seriousSource = true;
+
+        return this.textureSerious;
     },
     addSeriousTexture:function(w,h){
-        var texture = new THREE.WebGLRenderTarget( w || 512,h || 512, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat} );//, depthBuffer:false, stencilBuffer:false, anisotropy:1 } );
+        var texture = new THREE.WebGLRenderTarget( w || 512, h || 512, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat} );//, depthBuffer:false, stencilBuffer:false, anisotropy:1 } );
         texture.generateMipmaps = false;
         //texture.needsUpdate = true;
         this.seriousTextures.push(texture);
@@ -120,6 +173,15 @@ V.View.prototype = {
         v.scene.add(mesh);
         return mesh;
         //geo.ground.applyMatrix(new THREE.Matrix4().makeRotationX(-V.PI90));
+    },
+    addSphere:function( map, r ){
+        var geo = new THREE.SphereGeometry( r || 6, 30, 26 );
+        var mat 
+        if(map) mat = new THREE.MeshBasicMaterial( { map:map, transparent:true });
+        else mat = new THREE.MeshBasicMaterial( { color:0X00FF00 });
+        var mesh = new THREE.Mesh(geo, mat);
+        v.scene.add(mesh);
+        return mesh;
     }
 }
 
@@ -155,19 +217,26 @@ V.Nav = function(parent, h, v, d, f){
     this.moveCamera();
 
     
-    this.root.canvas.oncontextmenu = function(e){e.preventDefault()};
-    this.root.canvas.onclick = function(e) {this.onMouseClick(e)}.bind( this );
-    this.root.canvas.onmousemove = function(e) {this.onMouseMove(e)}.bind( this );
-    this.root.canvas.onmousedown = function(e) {this.onMouseDown(e)}.bind( this );
-    this.root.canvas.onmouseout = function(e) {this.onMouseOut(e)}.bind( this );
-    this.root.canvas.onmouseup = function(e) {this.onMouseUp(e)}.bind( this );
-    this.root.canvas.onmousewheel = function(e) {this.onMouseWheel(e)}.bind( this );
-    //this.root.canvas.onDOMMouseScroll = function(e) {this.onMouseWheel(e)}.bind( this );
-    this.root.canvas.addEventListener('DOMMouseScroll', function(e){this.onMouseWheel(e)}.bind( this ), false );
+    
 }
 
 V.Nav.prototype = {
 	constructor: V.Nav,
+    initEvents:function(){
+        //var dom = document.body;
+        var dom = this.root.canvas;
+        //
+        dom.oncontextmenu = function(e){e.preventDefault()};
+        dom.onclick = function(e) {this.onMouseClick(e)}.bind( this );
+        dom.onmousemove = function(e) {this.onMouseMove(e)}.bind( this );
+        dom.onmousedown = function(e) {this.onMouseDown(e)}.bind( this );
+        dom.onmouseout = function(e) {this.onMouseOut(e)}.bind( this );
+        dom.onmouseup = function(e) {this.onMouseUp(e)}.bind( this );
+        dom.onmousewheel = function(e) {this.onMouseWheel(e)}.bind( this );
+        //this.root.canvas.onDOMMouseScroll = function(e) {this.onMouseWheel(e)}.bind( this );
+        dom.addEventListener('DOMMouseScroll', function(e){this.onMouseWheel(e)}.bind( this ), false );
+
+    },
 	moveCamera:function(){
         this.orbit();
         this.camera.position.copy(this.position);

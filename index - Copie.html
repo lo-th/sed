@@ -12,11 +12,12 @@ body { font-family:'Open Sans', sans-serif; background:#222; font-size:12px; col
 #version { position:absolute; top:10px; left:10px; width:200px; height:40px; pointer-events:none;}
 #debug { position:absolute; top:20px; left:10px; width:200px; height:40px; pointer-events:none;}
 #canvas { position:absolute; pointer-events:auto; width:100%; height:100%;}
+.environment{position:absolute; left:10px; bottom:10px; border:3px solid #74818b; width:64px; height:64px; cursor:pointer;}
 </style>
+
 <script type="text/javascript" src="js/libs/three.min.js"></script>
-<script type="text/javascript" src="build/seriously.js"></script>
 <script type="text/javascript" src="js/uil.min.js"></script>
-<script type="text/javascript" src="src/SED.js"></script>
+<script type="text/javascript" src="build/sed.min.js"></script>
 <script type="text/javascript" src="js/V.3d.js"></script>
 </head>
 
@@ -26,55 +27,18 @@ body { font-family:'Open Sans', sans-serif; background:#222; font-size:12px; col
 <div id='debug'></div>
 <script>
 
-var bgcolor = '#333333';
-document.body.style.background = bgcolor;
-
+var bgcolor = '333333';
+document.body.style.background = '#'+ bgcolor;
 var canvas = document.getElementById('canvas');
 var debug = document.getElementById('debug');
-
 document.getElementById('version').innerHTML = 'Sed '+SED.REVISION;
 
 // init three viewer
 var v = new V.View(90, 90, 25, 60, null);
 
 // init seriously editor
-var s = new SED.Editor( true, v );
+var s = new SED.Editor( true, v.canvas );
 
-s.add('canvas', {n:'s0'});
-s.add('scene', {n:'t0'});
-
-
-s.textures['tx1'] = v.addSeriousTexture();
-
-s.add('texture', { n:'t1', texture: 'tx1' }  );
-s.add('image', {n:'s1', src:'images/akira.jpg'});
-
-s.add('canvas', {n:'s0'}, 2);
-s.add('scene', {n:'t0'}, 2);
-
-
-//s.textures['tx1'] = v.addSeriousTexture();
-
-s.add('texture', { n:'t1', texture: 'tx1' } ,2 );
-s.add('image', {n:'s1', src:'images/moeb.jpg'}, 2);
-
-
-s.addLink('t0', 's0');
-s.addLink('s1', 't1');
-
-s.addLink('t0', 's0',0,0,2);
-s.addLink('s1', 't1',0,0,2);
-//s.add('texture', { n:'t0', texture: 'tx1' }, 3);
-
-
-
-
-v.addSphere(s.textures['tx1']);
-
-s.refreshOnly(0, true);
-//v.addSphere();
-
-/*
 // create three textures
 s.textures['tx1'] = v.addSeriousTexture();
 s.textures['tx2'] = v.addSeriousTexture();
@@ -90,7 +54,7 @@ s.add('image', {n:'s4', src:'images/gime.jpg'});
 
 // effects
 s.add('split', {n:'f1'});
-s.add('lumakey', {n:'f2', clipBlack:0.2});
+s.add('bleach-bypass', {n:'f2'});
 s.add('brightness-contrast', {n:'f3'});
 s.add('blend', {n:'f4'});
 s.add('checkerboard', {n:'f5'});
@@ -110,8 +74,6 @@ s.add('brightness-contrast', {n:'f3'}, 6);
 s.addLink('s1', 'f2');
 s.addLink('f2', 't1');
 
-
-
 var m0 = v.addPlane(s.textures['tx1']);
 var m1 = v.addPlane(s.textures['tx2']);
 var m2 = v.addPlane(s.textures['tx3']);
@@ -128,10 +90,9 @@ function loop(){
 
     //serious.update();
 
-    //
     v.renderer.setClearColor( ('0x'+bgcolor)*1, 1 );
     v.render();
-}*/
+}
 
 </script>
 </body>
