@@ -17144,7 +17144,10 @@ SED.Editor.prototype = {
     },
     init:function(){
         var str = 'box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; font-family:"Open Sans", sans-serif; font-size:11px; color:#CCCCCC;';
-        SED.CC('S-editor', 'width:40px; height:40px; position:absolute; right:10px; top:20px; border:5px solid #282828; cursor:move; overflow:hidden; background:#1a1a1a;' + str );
+        
+        SED.CC('SED', 'position:absolute; pointer-events:none; box-sizing:border-box; -o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select:none; margin:0; padding:0; ');
+
+        SED.CC('S-editor', 'position:absolute; width:40px; height:40px; right:10px; top:20px; border:5px solid #282828; cursor:move; overflow:hidden; background:#1a1a1a;' + str );
         SED.CC('S-editor:hover', 'box-shadow:inset 0 0 0 1px #000');
 
         SED.CC('S-icc', 'position:absolute; left:-5px; top:-4px; text-align:center; width:40px; height:40px; pointer-events:none;'+ str);
@@ -17800,8 +17803,7 @@ SED.Editor.prototype = {
         var i = this.tmp[layer].nodes.length, id;
         while(i--){
             id = this.getID( this.tmp[layer].nodes[i].name );
-            if(ID == id) return this.tmp[layer].nodes[i];//.node;
-            //if(ID == i) return this.tmp[layer].nodes[i].node; 
+            if(ID == id) return this.tmp[layer].nodes[i];
         }
     },
     byN:function(n, layer){
@@ -18034,6 +18036,17 @@ SED.Editor.prototype = {
         this.addUIS(id, 'title', {id:id, name:type, prefix:prefix, color:'G'});
 
        switch(type){
+            case 'image': this.addUIS(id, 'string', {name:'src', color:'R'}); break;
+            case 'video': 
+                this.addUIS(id, 'string', {name:'src', color:'R'});
+                this.addUIS(id, 'button', {name:'PLAY', color:'R'});
+                this.addUIS(id, 'button', {name:'PAUSE', color:'R'});
+                this.addUIS(id, 'bool', {name:'autoplay'});
+                this.addUIS(id, 'bool', {name:'loop'});
+            break;
+            case 'texture-3D': this.addUIS(id, 'string', {name:'texture', color:'B'}); break;
+
+
             case 'reformat':
                 this.addUIS(id, 'list', {name:'mode', list:['contain', 'cover', 'distort', 'width', 'height', 'none']});
                 this.addUIS(id, 'number', {name:'width', min:0, precision:0});
@@ -18047,8 +18060,7 @@ SED.Editor.prototype = {
                 this.addUIS(id, 'number', {name:'translateX' , precision:0});
                 this.addUIS(id, 'number', {name:'translateY', precision:0});
             break;
-            case 'image': this.addUIS(id, 'string', {name:'src', color:'R'}); break;
-            case 'texture-3D': this.addUIS(id, 'string', {name:'texture', color:'B'}); break;
+            
             case 'accumulator':
                 this.addUIS(id, 'slide', {name:'opacity', min:0, max:1, precision:2 });
                 this.addUIS(id, 'list', {name:'blendMode', list:SED.BlendMode});
@@ -18349,10 +18361,28 @@ SED.Editor.prototype = {
     addUIS:function(id, type, obj){
         if(type!=='title'){
             var name = obj.name;
-            var node = this.tmp[this.LAYER].nodes[id];
+            var node = this.byID(id);//this.tmp[this.LAYER].nodes[id];
             if(obj.name == 'src'){
-                obj.callback = function(v){ node.obj.src = v; node.node[name] = v; }.bind(this);
+                obj.callback = function(v){ 
+                    if(v.substring(0,3)=='YT:' || v.substring(0,3)=='yt:' ){ 
+                        if(v.substring(0,3)=='YT:'){
+                            var localStorage = window.localStorage;
+                            localStorage.setItem('video', "http://youtube-download.bl.ee/getvideo.mp4?videoid="+v.substring(3)+'&format=ipad');
+                            node.node.src = localStorage.getItem('video');
+                        }else{
+                            node.node.src = "http://youtube-download.bl.ee/getvideo.mp4?videoid="+v.substring(3)+'&format=ipad';
+                        }
+                        node.node.crossorigin = '';//'use-credentials'//anonymous
+                    }else{
+                        node.node.src = v; 
+                    }
+                    node.obj.src = v;
+                }.bind(this);
                 obj.value = node.obj.src;
+            } else if(obj.name == 'PLAY'){
+                obj.callback = function(v){ node.node.play(); }.bind(this);
+            }else if(obj.name == 'PAUSE'){
+                obj.callback = function(v){ node.node.pause(); }.bind(this);
             }else if(obj.name=='texture'){
                 obj.callback = function(v){ node.obj.texture = v; node.node.destroy(); node.node = this.seriously.target(this.textures[v]); this.updateLink(); this.applyLinks(); }.bind(this);
                 obj.value = node.obj.texture;
@@ -18364,40 +18394,6 @@ SED.Editor.prototype = {
         }
         this.ui.add(type, obj);
     },
-
-    addVideoURL:function(id){
-        var name = 'URL';
-        var node = this.tmp[this.LAYER].nodes[id];
-        var callback = function(v){
-             node.obj.src = v;
-
-            if(v.substring(0,3)=='YT:' || v.substring(0,3)=='yt:' ){ 
-                var stream = "http://youtube-download.bl.ee/getvideo.mp4?videoid="+v.substring(3);
-                if (window.webkitURL) {
-                    node.node.src = window.webkitURL.createObjectURL(stream);
-                } else {
-                    node.node.src = stream;
-                }
-                //node.node.src = //"http://youtube-download.bl.ee/getvideo.php?videoid="+v.substring(3)+"&type=redirect";
-                node.node.load();
-                node.node.autoPlay = true;
-                node.node.play();
-            }else{
-               // node.obj.src = v;
-                node.node.src = v; 
-            }
-        }.bind(this);
-        //var s = new UIL.String(this.bmenu, name, callback, node.obj.src , 'S');
-        //this.sels.push( s );
-    },
-    /*addTextureLink:function(id){ //this.textures[obj.texture]
-        var name = 'Texture';
-        var node = this.tmp[this.LAYER].nodes[id];
-        var callback = function(v){ console.log(v, node); node.obj.texture = v; node.node.destroy(); node.node = this.seriously.target(this.textures[v]); this.updateLink(); this.applyLinks(); }.bind(this);
-        var s = new UIL.String(this.bmenu, name, callback, node.obj.texture, 'T' );
-        this.sels.push( s );
-    },*/
-
 
     //-----------------------------------------------------------
 
