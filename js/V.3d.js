@@ -731,7 +731,7 @@ V.Loader.prototype = {
 V.Worker = function(){
 
     this.data = null;
-    this.w = new Worker('js/p2w.js');
+    this.w = new Worker('js/p2.worker.js');
 
     this.w.postMessage = this.w.webkitPostMessage || this.w.postMessage;
     this.w.onmessage = function(e){this.update(e)}.bind( this );
