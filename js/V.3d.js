@@ -124,15 +124,9 @@ V.View = function(h,v,d, fov, lock){
 V.View.prototype = {
     constructor: V.View,
     render:function(){
-
         var delta = this.clock.getDelta();
-        if(this.girlReady){
-            if(this.input[5])this.player.rotation.y = V.PI;
-            if(this.input[6])this.player.rotation.y = 0;
 
-            if(this.input[5] || this.input[6]) this.girlWalk.update(1000 * delta);
-            if(!this.input[5] && !this.input[6]) this.girlStatic.update(1000 * delta);
-        } 
+         
         //if(this.girlStatic)this.girlStatic.update(1000 * delta);
         //if(this.worker) this.worker.post();
 
@@ -140,8 +134,15 @@ V.View.prototype = {
         var i = t;
         while(i--){
             this.renderer.setRenderTarget(this.seriousTextures[i]);
+
         }
         if(t)this.renderer.resetGLState();
+
+
+
+
+
+        
 
         if(this.seriousSource){
             //this.renderer.setRenderTarget(null);
@@ -151,6 +152,8 @@ V.View.prototype = {
         } else {
             this.renderer.render( this.scene, this.camera );
         }
+
+        this.updatePlayer(delta);
     },
     resize:function(dimentions){
         this.dimentions = dimentions;
@@ -180,8 +183,16 @@ V.View.prototype = {
         return this.textureSerious;
     },
     addSeriousTexture:function(w,h){
-        var texture = new THREE.WebGLRenderTarget( w || 512, h || 512, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat} );//, depthBuffer:false, stencilBuffer:false, anisotropy:1 } );
-        texture.generateMipmaps = false;
+        //var texture = new THREE.WebGLRenderTarget( w || 512, h || 512, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat} );//, depthBuffer:false, stencilBuffer:false, anisotropy:1 } );
+        var texture = new THREE.WebGLRenderTarget( w || 512, h || 512, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat} );
+        //var texture = new THREE.WebGLRenderTarget( w || 512, h || 512, { minFilter: THREE.LinearMipMapLinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat} );
+        //texture.generateMipmaps = false;
+
+        //texture.wrapS = THREE.ClampToEdgeWrapping;
+        //texture.wrapT = THREE.ClampToEdgeWrapping;
+
+        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;//THREE.RepeatWrapping;
+        texture.anisotropy = 16;
         //texture.needsUpdate = true;
         this.seriousTextures.push(texture);
         return texture;
@@ -205,11 +216,7 @@ V.View.prototype = {
         this.scene.add(mesh);
         this.objs.push(mesh);
 
-        if(this.worker) this.worker.add({});
-
         return mesh;
-
-        
     },
     add:function( obj, map ){
 
@@ -266,25 +273,30 @@ V.View.prototype = {
         if(this.worker) this.worker.addCar(obj);
     },
     addPlayer:function( obj, txt ){
+        this.SpriteShader = V.SpriteShader;
+        this.SpriteMaterial = new THREE.ShaderMaterial( {
+            uniforms:       this.SpriteShader.uniforms,
+            vertexShader:   this.SpriteShader.vs,
+            fragmentShader: this.SpriteShader.fs,
+            side:THREE.DoubleSide,
+            transparent:    true
+        });
+
+        this.SpriteMaterial.uniforms.map.value = txt;
+        this.SpriteMaterial.uniforms.repeat.value = new THREE.Vector2(1 / 8, 1 / 8);
+
         var obj = obj || {};
         obj.size = [1.6,2.4,2];
         obj.pos = [0,2];
 
-        var girlTexture = txt;//new THREE.ImageUtils.loadTexture( 'images/sorcery.png' );
-        this.girlStatic = new V.TextureAnimator( girlTexture, 8, 8, 1, 31, 60 );
-        this.girlWalk = new V.TextureAnimator( girlTexture, 8, 8, 33, 45, 60 );
+        this.girlStatic = new V.TextureAnimator( this.SpriteMaterial, 8, 8, 1, 31, 60 );
+        this.girlWalk = new V.TextureAnimator( this.SpriteMaterial, 8, 8, 33, 45, 60 );
 
         var mat = new THREE.MeshBasicMaterial( { color:0XFFFF00 });
        // mat.visible = false;
-        var mat2 = new THREE.MeshBasicMaterial( { map:girlTexture, side:THREE.DoubleSide, transparent:true });
         var body = new THREE.Mesh(new THREE.CubeGeometry( obj.size[0], obj.size[1], obj.size[2] ), mat);
 
-        this.player = new THREE.Mesh(new THREE.PlaneBufferGeometry(3,3), mat2);
-        
-    
-        /*this.scene.add(body);
-        body.add(b2);
-        this.objs.push(body);*/
+        this.player = new THREE.Mesh(new THREE.PlaneBufferGeometry(3,3), this.SpriteMaterial);
 
         this.scene.add(this.player);
         //this.player.add(body)
@@ -294,13 +306,21 @@ V.View.prototype = {
 
         this.girlReady = true;
     },
+    updatePlayer:function(delta){
+        if(!this.girlReady) return;
+
+        if(this.input[5])this.player.rotation.y = V.PI;
+        if(this.input[6])this.player.rotation.y = 0;
+
+        if(this.input[5] || this.input[6]) this.girlWalk.update(1000 * delta);
+        if(!this.input[5] && !this.input[6]) this.girlStatic.update(1000 * delta);
+    },
     
     initWorker:function(){
 
         this.worker = new V.Worker();
         this.worker.start();
-        //setInterval(this.worker.w.postMessage({ m:'run' }), 1000/60);
-        //setInterval(function(){this.worker.run();}.bind(this), 1000/60);
+
     },
     bindKeys:function(){
         window.onkeydown = function(e) {
@@ -332,23 +352,18 @@ V.View.prototype = {
     },
 }
 
-V.TextureAnimator = function (texture, tilesHoriz, tilesVert, start, end, tileDispDuration) {   
-    this.texture = texture;
+//---------------------------------------------------
+//   TEXTURE ANIM
+//---------------------------------------------------
+
+V.TextureAnimator = function (shader, tilesHoriz, tilesVert, start, end, tileDispDuration) {   
+    this.shader = shader;
     this.start = start;
 
         
     this.tilesHorizontal = tilesHoriz;
     this.tilesVertical = tilesVert;
-    // how many images does this spritesheet contain?
-    //  usually equals tilesHoriz * tilesVert, but not necessarily,
-    //  if there at blank tiles at the bottom of the spritesheet. 
     this.numberOfTiles = end;
-    //this.texture.flipY = false;
-    this.texture.wrapS = this.texture.wrapT = THREE.RepeatWrapping; 
-    this.texture.repeat.set( 1 / this.tilesHorizontal, 1 / this.tilesVertical );
-
-    this.texture.offset.x = 0/ this.tilesHorizontal;
-    this.texture.offset.y = 7/ this.tilesVertical;
 
     // how long should each image be displayed?
     this.tileDisplayDuration = tileDispDuration;
@@ -357,9 +372,7 @@ V.TextureAnimator = function (texture, tilesHoriz, tilesVert, start, end, tileDi
     this.currentDisplayTime = 0;
 
     // which image is currently being displayed?
-    this.currentTile = this.start;//0;
-
-    //this.show(1)
+    this.currentTile = this.start;
 }
 
 V.TextureAnimator.prototype = {
@@ -368,8 +381,8 @@ V.TextureAnimator.prototype = {
         n = n-1;
         var Column = n % this.tilesHorizontal;
         var Row = (this.tilesVertical-1) - Math.floor( n / this.tilesHorizontal );
-        this.texture.offset.x = Column/ this.tilesHorizontal;
-        this.texture.offset.y = Row/ this.tilesVertical;
+
+        this.shader.uniforms.pos.value = new THREE.Vector2(Column, Row);
     },
     update:function(milliSec){
         this.currentDisplayTime += milliSec;
@@ -791,3 +804,34 @@ V.Worker.prototype = {
         }
     }
 }
+
+//---------------------------------------------------
+//   SPRITE SHEET
+//---------------------------------------------------
+
+V.SpriteShader = {
+  uniforms:{
+    color: { type:'c', value: new THREE.Color(1, 1, 1) },
+    map: { type:'t', value: null },
+    repeat: { type:'v2', value: new THREE.Vector2(1,1) },
+    pos: { type:'v2', value: new THREE.Vector2(0,7) },
+  },
+  fs:[
+      'uniform vec3 color;',
+      'uniform sampler2D map;',
+      'uniform vec2 repeat;',
+      'uniform vec2 pos;',
+      'varying vec2 vUv;',
+      'void main(){',
+      '    vec4 color0 = texture2D( map, vUv * repeat + pos/8.0 );',
+      '    gl_FragColor = color0;',
+      '}'
+  ].join('\n'),
+  vs:[
+      'varying vec2 vUv;',
+      'void main(){',
+      '    vUv = uv;',
+      '    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+    '}'
+  ].join('\n')
+};
