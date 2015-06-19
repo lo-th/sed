@@ -10,7 +10,7 @@
 html{ overflow:hidden; width:100%; height:100%; }
 body { font-family:'Open Sans', sans-serif; background:#222; font-size:20px; color:#fff;}
 #version { position:absolute; top:10px; left:10px; width:200px; height:40px; pointer-events:none;}
-#debug { position:absolute; top:20px; left:10px; width:200px; height:40px; pointer-events:none;}
+#debug { position:absolute; top:40px; left:10px; width:200px; height:40px; pointer-events:none; font-size:11px;}
 #canvas { position:absolute; pointer-events:auto; width:100%; height:100%;}
 .environment{position:absolute; left:10px; bottom:10px; border:3px solid #74818b; width:64px; height:64px; cursor:pointer;}
 </style>
@@ -25,7 +25,7 @@ body { font-family:'Open Sans', sans-serif; background:#222; font-size:20px; col
 <body>
 <canvas id='canvas'></canvas>
 <div id='version'></div>
-<div id='debug'></div>
+<div id='debug'>Move with keyboard</div>
 <script>
 
 var bgcolor = '#333333';
@@ -37,14 +37,18 @@ var debug = document.getElementById('debug');
 document.getElementById('version').innerHTML = 'SED '+SED.REVISION;
 
 // init three viewer
-var v = new V.View(90, 90, 25, 60);
+var v = new V.View(90, 90, 10, 60, true);
+
+// init P2 worker
+v.initWorker();
 
 // init seriously editor
 var s = new SED.Editor( true, v );
 
 // add object and texture
-s.textures['tx1'] = v.addSeriousTexture()
-v.addSphere(s.textures['tx1']);
+s.textures['tx1'] = v.addSeriousTexture();
+s.textures['tx2'] = v.addSeriousTexture(2048, 2048);
+
 
 // panel 0
 
@@ -52,11 +56,13 @@ s.add('canvas', {n:'s0'});
 s.add('scene', {n:'t0'});
 
 s.add('texture', { n:'t1', texture: 'tx1' }  );
+s.add('texture', { n:'t2', texture: 'tx2' }  );
 s.add('image', {n:'s1', src:'images/akira.jpg'});
+s.add('image', {n:'s2', src:'images/sorcery.png'});
 
 s.addLink('t0', 's0');
 s.addLink('s1', 't1');
-
+s.addLink('s2', 't2');
 // panel 2
 
 s.add('canvas', {n:'s0'}, 2);
@@ -71,6 +77,12 @@ s.addLink('s1', 't1',0,0,2);
 // start seriously
 
 s.refreshOnly(0, true);
+
+
+var i = 30;
+while(i--) v.add( {type:'circle', size:[0.4,0,1] }, s.textures['tx1']);
+v.addCar( {} );
+v.addPlayer( {}, s.textures['tx2'] );
 
 </script>
 </body>
