@@ -43,7 +43,7 @@ var s = new SED.Editor( true, v );
 
 // add object and texture
 s.textures['tx1'] = v.addSeriousTexture()
-v.addSphere(s.textures['tx1']);
+
 
 // panel 0
 
@@ -71,7 +71,7 @@ s.addLink('s1', 't1',0,0,2);
 
 s.refreshOnly(0, true);
 
-
+v.addSphere(s.textures['tx1']);
 </script>
 </body>
 </html>

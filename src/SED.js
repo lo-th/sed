@@ -1090,7 +1090,7 @@ SED.Editor.prototype = {
         var prefix = this.getPrefix(name);
         var type = this.getType(name);
 
-        this.addUIS(id, 'title', {id:id, name:type, prefix:prefix, color:'G'});
+        this.addUIS(id, 'title', {id:id, name:type, prefix:prefix, color:prefix});
 
        switch(type){
             case 'image': this.addUIS(id, 'string', {name:'src', color:'R'}); break;

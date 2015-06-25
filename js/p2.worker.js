@@ -168,11 +168,11 @@ W.Simulation.prototype = {
     },
     upPlayer : function(){
         if(!this.player) return;
-        if(this.input[5]) this.playerBody.velocity[0] = -this.walkSpeed;
-        if(this.input[6]) this.playerBody.velocity[0] = this.walkSpeed;
-        if(this.input[5]==0 && this.input[6]==0) this.playerBody.velocity[0] = 0;
+        if(this.input[4]>0) this.playerBody.velocity[0] = (this.input[4]+this.input[10])*10;
+        if(this.input[4]<0) this.playerBody.velocity[0] = (this.input[4]-this.input[10])*10;
+        if(this.input[4]==0) this.playerBody.velocity[0] = 0;
 
-        if(this.input[9] || this.input[3]) if(this.checkIfCanJump() && !this.inJump){ 
+        if(this.input[9] || this.input[3]>0) if(this.checkIfCanJump() && !this.inJump){ 
             this.playerBody.velocity[1] = this.jumpSpeed;
             this.inJump = true;
         } else {
@@ -286,13 +286,13 @@ W.Simulation.prototype = {
     },
     upCar : function(){
         if(!this.car) return;
-        if(this.input[5]) this.torque = 5;
-        if(this.input[6]) this.torque = -5;
-        if(this.input[5]==0 && this.input[6]==0) this.torque = 0;
+        if(this.input[4]>0) this.torque = (this.input[4]+this.input[10])*10;
+        else if(this.input[4]<0) this.torque = (this.input[4]-this.input[10])*10;
+        else this.torque = 0;
 
 
-        this.wheelBody1.angularForce += this.torque;
-        this.wheelBody2.angularForce += this.torque;
+        this.wheelBody1.angularForce -= this.torque;
+        this.wheelBody2.angularForce -= this.torque;
     },
     clear : function(){
        // world.clear();

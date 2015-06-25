@@ -39,13 +39,25 @@ V.randInt = function (a, b, n) { return V.lerp(a, b, Math.random()).toFixed(n ||
 V.randColor = function () { return '#'+Math.floor(Math.random()*16777215).toString(16);}
 
 V.hexFormat = function(v){ return Number(v.toUpperCase().replace("#", "0x")); };
+V.fixe = function(v, n){ return v.toFixed(n || 1)*1; };
+V.gamefixe = function(v, n){ 
+    var vl = v.toFixed(2)*1;
+    if(vl<=0.1 && vl>=-0.1) vl = 0;
+    return vl; 
+};
 
-V.MeshList = [ 'plane', 'sphere', 'skull', 'skullhigh', 'head', 'woman', 'babe'];
+
+
+//V.MeshList = [ 'plane', 'sphere', 'skull', 'skullhigh', 'head', 'woman', 'babe'];
+
+
+
 V.Main = null;
 
 V.View = function(h,v,d, fov, lock){
 
     this.lock = lock || false;
+    this.isGamePad = false;
 
     this.imgs = {};
     this.geos = {};
@@ -53,6 +65,7 @@ V.View = function(h,v,d, fov, lock){
     this.objs = [];
 
     this.input = [0,0,0,0,0,0,0,0,0,0,0];
+    this.keyPressed={};
 
     this.worker = null;
 
@@ -86,6 +99,8 @@ V.View = function(h,v,d, fov, lock){
 
     this.base = new THREE.Group();
     this.scene.add(this.base);
+
+    this.dummyTexture = THREE.ImageUtils.loadTexture( 'images/dummy.png');
 
     if(this.lock){
         var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(100,100), new THREE.MeshBasicMaterial( { color:0X00FF00 }));
@@ -124,19 +139,27 @@ V.View = function(h,v,d, fov, lock){
 V.View.prototype = {
     constructor: V.View,
     render:function(){
+        //if(this.gamepad)this.updateGamePad();
+
         var delta = this.clock.getDelta();
 
          
         //if(this.girlStatic)this.girlStatic.update(1000 * delta);
         //if(this.worker) this.worker.post();
 
+        //if(this.objs[0])this.objs[0].material.map = this.dummyTexture; 
+        //if(this.objs[0]) this.objs[0].material = this.matTmp0;
+
         var t = this.seriousTextures.length;
         var i = t;
         while(i--){
             this.renderer.setRenderTarget(this.seriousTextures[i]);
-
         }
-        if(t)this.renderer.resetGLState();
+        //if(t)this.renderer.resetGLState();
+
+        
+
+       
 
 
 
@@ -146,8 +169,10 @@ V.View.prototype = {
 
         if(this.seriousSource){
             //this.renderer.setRenderTarget(null);
-            //this.renderer.resetGLState();
+            this.renderer.resetGLState();
+            //if(this.objs[0]) this.objs[0].material = this.matTmp1;
             this.renderer.setClearColor( this.color, 1 );
+            //this.textureSerious = this.dummyTexture;
             this.renderer.render( this.scene, this.camera, this.textureSerious, true);
         } else {
             this.renderer.render( this.scene, this.camera );
@@ -209,9 +234,14 @@ V.View.prototype = {
     },
     addSphere:function( map, r ){
         var geo = new THREE.SphereGeometry( r || 6, 30, 26 );
+        //var geo = new THREE.SphereBufferGeometry( r || 6, 30, 26 );
         var mat 
         if(map) mat = new THREE.MeshBasicMaterial( { map:map, transparent:true });
-        else mat = new THREE.MeshBasicMaterial( { color:0X00FF00 });
+       else   mat = new THREE.MeshBasicMaterial( { color:0X00FF00 });
+
+           // this.matTmp0 = new THREE.MeshBasicMaterial( { color:0X00FF00 });
+           // this.matTmp1 = new THREE.MeshBasicMaterial( { map:map, transparent:true });
+
         var mesh = new THREE.Mesh(geo, mat);
         this.scene.add(mesh);
         this.objs.push(mesh);
@@ -309,11 +339,10 @@ V.View.prototype = {
     updatePlayer:function(delta){
         if(!this.girlReady) return;
 
-        if(this.input[5])this.player.rotation.y = V.PI;
-        if(this.input[6])this.player.rotation.y = 0;
-
-        if(this.input[5] || this.input[6]) this.girlWalk.update(1000 * delta);
-        if(!this.input[5] && !this.input[6]) this.girlStatic.update(1000 * delta);
+        if(this.input[4]<0) this.player.rotation.y = V.PI;
+        if(this.input[4]>0) this.player.rotation.y = 0;
+        if(this.input[4] !== 0 ) this.girlWalk.update(1000 * delta);
+        else this.girlStatic.update(1000 * delta);
     },
     
     initWorker:function(){
@@ -322,27 +351,79 @@ V.View.prototype = {
         this.worker.start();
 
     },
+
+    bindGamePad:function(){
+        this.GP = null;
+
+        this.gamepad = navigator.getGamepads || !!navigator.webkitGetGamepads || !!navigator.webkitGamepads;
+        if (!this.gamepad) {
+        }else{
+            var onGamePad = this.updateGamePad;
+            if ('ongamepadconnected' in window){
+                window.addEventListener('gamepadconnected',  function(e) { this.GP = window.setInterval( function(){ this.updateGamePad() }.bind(this) ,100);}, false);
+                window.addEventListener('gamepaddisconnected',  function(e) {window.clearInterval(this.GP);}.bind(this), false);
+            }else {
+                this.GP = window.setInterval( function(){ this.updateGamePad() }.bind(this) ,100);
+            }
+        }
+    },
+    updateGamePad:function(){
+        var gp = navigator.getGamepads()[0];
+        if(gp){
+                var html = "";
+            html += "id: "+gp.id+"<br/>";
+            
+            for(var i=0;i<gp.buttons.length;i++) {
+                html+= "Button "+(i)+": ";
+                if(gp.buttons[i].pressed){
+                    html+= " pressed " + V.gamefixe(gp.buttons[i].value);
+                }
+                
+                html+= "<br/>";
+            }
+            
+            for(var i=0;i<gp.axes.length; i+=2) {
+                html+= "Stick "+(Math.ceil(i/2)+1)+": "+V.gamefixe(gp.axes[i])+","+V.gamefixe(gp.axes[i+1])+"<br/>";
+            }
+
+            if(this.isGamePad){
+                if(gp.buttons[9].pressed) this.isGamePad = false;
+                this.input[4] = V.gamefixe( gp.axes[0] );
+            } else {
+                if(gp.buttons[9].pressed) this.isGamePad = true;
+            }
+
+            debug.innerHTML = html  +'<br>'+ this.isGamePad+'<br>' +this.input;
+        }
+        
+    },
     bindKeys:function(){
         window.onkeydown = function(e) {
+            //this.keyPressed[e.keyCode] = true;
             e = e || window.event;
+
+            if( e.shiftKey ) this.input[10] = 0.5;
+            else this.input[10] = 0;
+           
             switch ( e.keyCode ) {
-                case 38: case 87: case 90: this.input[3] = 1;  break; // up, W, Z
-                case 40: case 83:          this.input[4] = 1;  break; // down, S
-                case 37: case 65: case 81: this.input[5] = 1;  break; // left, A, Q
-                case 39: case 68:          this.input[6] = 1;  break; // right, D
+                case 38: case 87: case 90: this.input[3] =  0.5;  break; // up, W, Z
+                case 40: case 83:          this.input[3] = -0.5;  break; // down, S
+                case 37: case 65: case 81: this.input[4] = -0.5;  break; // left, A, Q
+                case 39: case 68:          this.input[4] =  0.5;  break; // right, D
                 case 17: case 67:          this.input[7] = 1;  break; // ctrl, C
                 case 69:                   this.input[8] = 1;  break; // E
                 case 32:                   this.input[9] = 1;  break; // space
-                case 16:                   this.input[10] = 1;  break; // shift
+                //case 16:                   this.input[10] = 0.5;  break; // shift
             }
         }.bind(this);
         window.onkeyup = function(e) {
+            //this.keyPressed[e.keyCode] = false;
             e = e || window.event;
             switch( e.keyCode ) {
                 case 38: case 87: case 90: this.input[3] = 0;  break; // up, W, Z
-                case 40: case 83:          this.input[4] = 0;  break; // down, S
-                case 37: case 65: case 81: this.input[5] = 0;  break; // left, A, Q
-                case 39: case 68:          this.input[6] = 0;  break; // right, D
+                case 40: case 83:          this.input[3] = 0;  break; // down, S
+                case 37: case 65: case 81: this.input[4] = 0;  break; // left, A, Q
+                case 39: case 68:          this.input[4] = 0;  break; // right, D
                 case 17: case 67:          this.input[7] = 0;  break; // ctrl, C
                 case 69:                   this.input[8] = 0;  break; // E
                 case 32:                   this.input[9] = 0;  break; // space
@@ -593,8 +674,8 @@ V.Nav.prototype = {
 
             V.main.mouse.position.copy(intersects[0].point);
 
-            V.main.input[1] = intersects[0].point.x;
-            V.main.input[2] = intersects[0].point.y;
+            V.main.input[1] = V.fixe(intersects[0].point.x, 2);
+            V.main.input[2] = V.fixe(intersects[0].point.y, 2);
 
            // if (typeof mainRay == 'function') { mainRay(this.mouse3d, this.selectName); }
             
