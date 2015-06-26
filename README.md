@@ -1,4 +1,4 @@
-<img src="http://lo-th.github.io/sed/images/sed.png"/> sed v0.2
+<img src="http://lo-th.github.io/sed/images/sed.png"/> sed v0.5
 
 [DEMO](http://lo-th.github.io/sed/)
 =========
